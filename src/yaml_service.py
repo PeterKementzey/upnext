@@ -16,22 +16,16 @@ class Series:
         self.episode = episode
 
 
-test_series = [
-    Series("/home/peter/Downloads/torrents/Ted.Lasso.S02.1080p.WEBRip.x265-RARBG[eztv.re]", 1),
-    Series("/home/peter/Videos/Movies_no_backup/Series/Archer Season 3/", 1),
-]
-
-
 def read_yaml_string() -> None:
     """
     Read the yaml file from the home folder. If the file does not exist, create it and return an empty string.
     """
+    global data
     if not os.path.exists(yaml_path):
         open(yaml_path, 'w').close()
         print(f"Created yaml file at {yaml_path}")
         return
     with open(yaml_path) as file:
-        global data
         data = yaml.load(file)
         print(f"Read {yaml_path}:\n")
         yaml.dump(data, stdout)
@@ -43,8 +37,9 @@ def write_yaml_string() -> None:
     """
     Write the yaml string to the yaml file in the home folder.
     """
+    global data
     with open(yaml_path, 'w') as file:
-        yaml.dump(test_series, file)
+        yaml.dump(data, file)
         print(f"Wrote to {yaml_path}:\n")
-        yaml.dump(test_series, stdout)
+        yaml.dump(data, stdout)
         print("\n")
