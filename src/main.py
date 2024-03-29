@@ -3,7 +3,7 @@ from pathlib import Path
 
 import typer
 
-from yaml_service import read_yaml_string, write_yaml_string
+import yaml_service
 
 app = typer.Typer()
 current_working_directory = Path(os.getcwd())
@@ -12,13 +12,23 @@ current_working_directory = Path(os.getcwd())
 @app.callback()
 def init():
     print("loading yaml file...")
-    read_yaml_string()
+    yaml_service.read_yaml_string()
 
 
 @app.command()
-def main():
+def save():
     print("saving yaml file...")
-    write_yaml_string()
+    yaml_service.write_yaml_string()
+
+
+@app.command()
+def info():
+    series = yaml_service.get_series_by_path(str(current_working_directory))
+    if series is None:
+        print("No series found.")
+        return
+
+    print(f"Next episode: {series.next_episode}")
 
 
 if __name__ == "__main__":
