@@ -7,16 +7,15 @@ import ruamel.yaml
 
 class YamlFileManager:
     yaml_engine = ruamel.yaml.YAML()
-    yaml_path = Path.home() / ".upnext.yaml"
+    yaml_path: Path
     yaml_data: list[dict]
 
-    def __init__(self):
-        self.yaml_data = []
+    def __init__(self, path: Path = Path.home() / ".upnext.yaml"):
+        self.yaml_path = path
         self._load()
 
     def _log_yaml_data(self):
         if log.root.level == log.DEBUG:
-            # if it is not a streamhandler, then error
             if not isinstance(log.root.handlers[0], log.StreamHandler):
                 raise ValueError("log.root.handlers[0] is not a StreamHandler")
             log_handler: log.StreamHandler = log.root.handlers[0]

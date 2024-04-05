@@ -1,4 +1,4 @@
 .idea/
 build/
-src/__pycache__/
-#src/*.pyc
+# both test/ and src/
+*/__pycache__/
