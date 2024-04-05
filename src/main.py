@@ -29,6 +29,10 @@ def _ensure_series_not_null() -> dict:
 
 @app.command()
 def info():
+    """
+    Print the series information in the current directory.
+    :return:
+    """
     log.debug("COMMAND: info")
     series: dict = _ensure_series_not_null()
     print("---")
@@ -37,6 +41,10 @@ def info():
 
 @app.command()
 def init():
+    """
+    Initialize the current directory as a series.
+    :return:
+    """
     log.debug("COMMAND: init")
     global series
     if series:
@@ -51,6 +59,11 @@ def init():
 
 @app.command("set")
 def set_next_episode(n: int):
+    """
+    Set the next episode number explicitly.
+    :param n:
+    :return:
+    """
     log.debug(f"COMMAND: set {n}")
     series: dict = _ensure_series_not_null()
     # TODO: validate n - not too big?
@@ -62,6 +75,11 @@ def set_next_episode(n: int):
 
 @app.command("watch")
 def increment_episode_count(n: Annotated[Optional[int], typer.Argument()] = 1):
+    """
+    Increment the next episode number by n. Default is 1.
+    :param n:
+    :return:
+    """
     log.debug(f"COMMAND: watch {n}")
     series = _ensure_series_not_null()
     set_next_episode(series["next_episode"] + n)
@@ -69,6 +87,10 @@ def increment_episode_count(n: Annotated[Optional[int], typer.Argument()] = 1):
 
 @app.command()
 def reset():
+    """
+    Remove data about the series in current directory.
+    :return:
+    """
     log.debug("COMMAND: reset")
     _ensure_series_not_null()
     yaml_file_manager.remove_series_by_path(str(current_working_directory))
