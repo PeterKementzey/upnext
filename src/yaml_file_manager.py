@@ -26,6 +26,7 @@ class YamlFileManager:
         Read the yaml file from the home folder. If the file does not exist, create it and return an empty string.
         """
         if not os.path.exists(self.yaml_path):
+            self.yaml_data = []
             open(self.yaml_path, 'w').close()
             log.debug(f"Created yaml file at {self.yaml_path}")
             return
