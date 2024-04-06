@@ -1,30 +1,19 @@
 import logging as log
-import os
-from pathlib import Path
 from sys import stdout
 from typing import Optional
 
-import ruamel.yaml
 import typer
 from typer import Typer
 from typing_extensions import Annotated
 
-from yaml_file_manager import YamlFileManager
+from app_logic import AppLogic
 
 log.basicConfig(format='%(levelname)s:%(message)s', stream=stdout, level=log.DEBUG)
 
 app_name = "upnext"
 app: Typer = typer.Typer()
 
-current_working_directory: Path = Path(os.getcwd())
-yaml_file_manager: YamlFileManager = YamlFileManager()
-series: dict | None = yaml_file_manager.find_series_by_path(str(current_working_directory))
-
-
-def _ensure_series_not_null() -> dict:
-    if series is None:
-        raise ValueError(f"No series found. Please run '{app_name} init' first.")
-    return series
+app_logic = AppLogic()
 
 
 @app.command()
@@ -34,9 +23,7 @@ def info():
     :return:
     """
     log.debug("COMMAND: info")
-    series: dict = _ensure_series_not_null()
-    print("---")
-    ruamel.yaml.YAML().dump([series], stdout)
+    app_logic.print_info()
 
 
 @app.command()
@@ -46,15 +33,8 @@ def init():
     :return:
     """
     log.debug("COMMAND: init")
-    global series
-    if series:
-        print("Current directory is already initialized.")
-        info()
-    else:
-        print("Initializing current directory.")
-        series = yaml_file_manager.create_series_by_path(str(current_working_directory))
-        yaml_file_manager.save()
-        info()
+    app_logic.initialize_directory()
+    app_logic.print_info()
 
 
 @app.command("set")
@@ -65,15 +45,12 @@ def set_next_episode(n: int):
     :return:
     """
     log.debug(f"COMMAND: set {n}")
-    series: dict = _ensure_series_not_null()
-    # TODO: validate n - not too big?
-    info()
-    series["next_episode"] = n
-    yaml_file_manager.save()
-    info()
+    app_logic.print_info()
+    app_logic.set_next_episode(n)
+    app_logic.print_info()
 
 
-@app.command("watch")
+@app.command("inc")
 def increment_episode_count(n: Annotated[Optional[int], typer.Argument()] = 1):
     """
     Increment the next episode number by n. Default is 1.
@@ -81,8 +58,9 @@ def increment_episode_count(n: Annotated[Optional[int], typer.Argument()] = 1):
     :return:
     """
     log.debug(f"COMMAND: watch {n}")
-    series = _ensure_series_not_null()
-    set_next_episode(series["next_episode"] + n)
+    app_logic.print_info()
+    app_logic.increment_next_episode(n)
+    app_logic.print_info()
 
 
 @app.command()
@@ -92,19 +70,31 @@ def reset():
     :return:
     """
     log.debug("COMMAND: reset")
-    _ensure_series_not_null()
-    yaml_file_manager.remove_series_by_path(str(current_working_directory))
-    yaml_file_manager.save()
-    global series
-    series = None
+    app_logic.remove_current_series()
+    print("Series removed.")
 
 
 @app.command()
-def play():
+def play(n: Annotated[Optional[int | None], typer.Argument()] = None):
+    """
+    Play n episodes starting from the next episode. If n is not provided, play until stopped.
+    :return:
+    """
     log.debug("COMMAND: play")
-    series = _ensure_series_not_null()
-    info()
-    raise NotImplementedError("Not yet implemented!")
+    app_logic.print_info()
+    if app_logic.is_over() is False and (n is None or n > 0):
+        app_logic.play_next_episode()
+        app_logic.increment_next_episode()
+        app_logic.print_info()
+        if n is not None:
+            n -= 1
+    while app_logic.is_over() is False and (n is None or n > 0):
+        app_logic.countdown_to_episode(10)
+        app_logic.play_next_episode()
+        app_logic.increment_next_episode()
+        app_logic.print_info()
+        if n is not None:
+            n -= 1
 
 
 if __name__ == "__main__":
