@@ -8,7 +8,7 @@ from typing_extensions import Annotated
 
 from app_logic import AppLogic
 
-log.basicConfig(format='%(levelname)s:%(message)s', stream=stdout, level=log.DEBUG)
+log.basicConfig(format='%(levelname)s:%(message)s', stream=stdout, level=log.WARN)
 
 app_name = "upnext"
 app: Typer = typer.Typer()
@@ -22,7 +22,6 @@ def info():
     Print the series information in the current directory.
     :return:
     """
-    log.debug("COMMAND: info")
     app_logic.print_info()
 
 
@@ -32,7 +31,6 @@ def init():
     Initialize the current directory as a series.
     :return:
     """
-    log.debug("COMMAND: init")
     app_logic.initialize_directory()
     app_logic.print_info()
 
@@ -44,7 +42,6 @@ def set_next_episode(n: int):
     :param n:
     :return:
     """
-    log.debug(f"COMMAND: set {n}")
     app_logic.print_info()
     app_logic.set_next_episode(n)
     app_logic.print_info()
@@ -57,7 +54,6 @@ def increment_episode_count(n: Annotated[Optional[int], typer.Argument()] = 1):
     :param n:
     :return:
     """
-    log.debug(f"COMMAND: watch {n}")
     app_logic.print_info()
     app_logic.increment_next_episode(n)
     app_logic.print_info()
@@ -69,7 +65,6 @@ def reset():
     Remove data about the series in current directory.
     :return:
     """
-    log.debug("COMMAND: reset")
     app_logic.remove_current_series()
     print("Series removed.")
 
@@ -80,7 +75,6 @@ def play(n: Annotated[Optional[int | None], typer.Argument()] = None):
     Play n episodes starting from the next episode. If n is not provided, play until stopped.
     :return:
     """
-    log.debug("COMMAND: play")
     app_logic.print_info()
     if app_logic.is_over() is False and (n is None or n > 0):
         app_logic.play_next_episode()

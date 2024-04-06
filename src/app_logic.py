@@ -79,10 +79,7 @@ class AppLogic:
 
     @staticmethod
     def _play_file_in_vlc(file_path):
-        log_file = Path.home() / ".upnext-vlc.log"
-        with open(log_file, "a") as f:
-            f.write(f"\n\nPlaying {file_path}\n")
-            subprocess.call(["vlc", file_path, "--play-and-exit", "--fullscreen"], stdout=f, stderr=f)
+        subprocess.call(["vlc", file_path, "--play-and-exit", "--fullscreen"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     @staticmethod
     def countdown_to_episode(n: int):

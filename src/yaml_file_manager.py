@@ -28,14 +28,14 @@ class YamlFileManager:
         if not os.path.exists(self.yaml_path):
             self.yaml_data = []
             open(self.yaml_path, 'w').close()
-            log.debug(f"Created yaml file at {self.yaml_path}")
+            log.info(f"Created yaml file at {self.yaml_path}")
             return
         with open(self.yaml_path) as file:
             self.yaml_data = self.yaml_engine.load(file)
 
             # validate(self.yaml_data)
 
-            log.debug(f"Read {self.yaml_path}:")
+            log.info(f"Read {self.yaml_path}:")
             self._log_yaml_data()
             return
 
@@ -45,7 +45,7 @@ class YamlFileManager:
         """
         with open(self.yaml_path, 'w') as file:
             self.yaml_engine.dump(self.yaml_data, file)
-            log.debug(f"Wrote to {self.yaml_path}:")
+            log.info(f"Wrote to {self.yaml_path}:")
             self._log_yaml_data()
 
     @staticmethod
@@ -71,7 +71,7 @@ class YamlFileManager:
         """
         Get the current series from the yaml file. Returns a pointer.
         """
-        log.debug("get_series_by_path:", path)
+        log.info("get_series_by_path:", path)
         series = self.find_series_by_path(path)
         if series:
             return series
