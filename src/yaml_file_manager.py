@@ -84,3 +84,6 @@ class YamlFileManager:
         Remove the series with the given path.
         """
         self.yaml_data = [s for s in self.yaml_data if s["path"] != path]
+
+    def all_data(self) -> list[dict]:
+        return self.yaml_data

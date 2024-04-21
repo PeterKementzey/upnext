@@ -32,6 +32,10 @@ class AppLogic:
         print("---")
         ruamel.yaml.YAML().dump([series], stdout)
 
+    def print_all(self):
+        print("---")
+        ruamel.yaml.YAML().dump(self.yaml_file_manager.all_data(), stdout)
+
     def initialize_directory(self):
         if self.series:
             print("Current directory is already initialized.")

@@ -70,6 +70,15 @@ def reset():
 
 
 @app.command()
+def print_all():
+    """
+    Print all series information.
+    :return:
+    """
+    app_logic.print_all()
+
+
+@app.command()
 def play(n: Annotated[Optional[int | None], typer.Argument()] = None):
     """
     Play n episodes starting from the next episode. If n is not provided, play until stopped.
