@@ -11,7 +11,7 @@ from app_logic import AppLogic
 log.basicConfig(format='%(levelname)s:%(message)s', stream=stdout, level=log.WARN)
 
 app_name = "upnext"
-app: Typer = typer.Typer()
+app: Typer = typer.Typer(no_args_is_help=True, name=app_name, add_completion=False)
 
 app_logic = AppLogic()
 
