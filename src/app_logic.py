@@ -1,3 +1,4 @@
+from datetime import datetime
 import glob
 import os
 import subprocess
@@ -65,6 +66,7 @@ class AppLogic:
         if self.is_over():
             raise ValueError("No more episodes to watch.")
         else:
+            print(f"Starting episode  {series['next_episode']} at {datetime.now().strftime('%H:%M')}")
             file_path = files[series["next_episode"] - 1]
             self._play_file_in_vlc(file_path)
 
