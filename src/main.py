@@ -79,26 +79,46 @@ def print_all():
 
 
 @app.command()
-def play(n: Annotated[Optional[int | None], typer.Argument()] = None):
+def play(wait_in_sec: Annotated[int,
+typer.Option("--wait", help="Number of seconds to wait before playing next episode.")] = 8):
     """
-    Play n episodes starting from the next episode. If n is not provided, play until stopped.
+    Start playing series episodes.
     :return:
     """
     app_logic.print_info()
-    if app_logic.is_over() is False and (n is None or n > 0):
+    if app_logic.is_over() is False:
         app_logic.play_next_episode()
         app_logic.increment_next_episode()
         app_logic.print_info()
-        if n is not None:
-            n -= 1
-    while app_logic.is_over() is False and (n is None or n > 0):
-        app_logic.countdown_to_episode(10)
+    while app_logic.is_over() is False:
+        app_logic.countdown_to_episode(wait_in_sec)
         app_logic.play_next_episode()
         app_logic.increment_next_episode()
         app_logic.print_info()
-        if n is not None:
-            n -= 1
+    series_over_actions()
+
+
+@app.command("next")
+def play_next_episode():
+    """
+    Play the next episode.
+    :return:
+    """
+    app_logic.print_info()
+    if app_logic.is_over() is False:
+        app_logic.play_next_episode()
+        app_logic.increment_next_episode()
+        app_logic.print_info()
+    else:
+        series_over_actions()
 
 
 if __name__ == "__main__":
     app()
+
+
+def series_over_actions():
+    print("Series over.")
+    user_wants_to_reset = typer.confirm("Do you want to reset the series?")
+    if user_wants_to_reset:
+        reset()
