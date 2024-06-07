@@ -1,5 +1,7 @@
 use clap::{Parser, Subcommand};
 
+mod persistence;
+
 /// A simple CLI app to keep track of your progress in watching TV shows, series.
 #[derive(Parser)]
 #[command(
