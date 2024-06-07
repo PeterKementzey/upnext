@@ -1,7 +1,10 @@
 use clap::{Parser, Subcommand};
+use crate::persistence::SeriesList;
 
 mod persistence;
 mod commands;
+#[cfg(test)]
+mod tests;
 
 /// A simple CLI app to keep track of your progress in watching TV shows, series.
 #[derive(Parser)]
@@ -35,7 +38,7 @@ enum Commands {
     #[command(name = "inc")]
     IncrementEpisode {
         /// Increment by this amount. If the new episode number is equal to the total number of episodes, the series is considered complete.
-        n: usize,
+        n: i64,
     },
     /// Set the next episode number explicitly.
     #[command(name = "set")]
@@ -59,16 +62,13 @@ fn get_toml_path() -> String {
     format!("{}/.upnext.toml", home)
 }
 
-fn get_series_list() -> persistence::SeriesList {
+fn get_series_list() -> Option<persistence::SeriesList> {
     let toml_path = get_toml_path();
-    match persistence::read_toml_file(&toml_path) {
-        Ok(series_list) => series_list,
-        Err(_) => {
-            let series_list = persistence::SeriesList::new();
-            persistence::write_toml_file(&toml_path, &series_list).expect("Could not write toml file");
-            series_list
-        }
-    }
+    persistence::read_toml_file(&toml_path).ok()
+}
+
+fn create_series_list() -> persistence::SeriesList {
+    persistence::SeriesList::new()
 }
 
 fn save_series_list(series_list: &persistence::SeriesList) {
@@ -83,7 +83,7 @@ fn main() {
     match &cli.command {
         Commands::Init => {
             println!("Initializing series");
-            let mut series_list = get_series_list();
+            let mut series_list: SeriesList = get_series_list().unwrap_or_else(create_series_list);
             series_list.init_series();
             save_series_list(&series_list);
         }
@@ -92,16 +92,15 @@ fn main() {
         Commands::Info => println!("Printing series information"),
         Commands::IncrementEpisode { n } => {
             println!("Incrementing episode by {}", n);
-            let mut series_list = get_series_list();
+            let mut series_list = get_series_list().expect("Could not read series list");
             let series = series_list.series.iter_mut().find(|s| s.path == std::env::current_dir().unwrap().to_str().unwrap());
             match series {
                 Some(series) => {
-                    series.next_episode += *n as u32;
+                    series.next_episode += *n;
                     save_series_list(&series_list);
                 }
                 None => println!("No series found in current directory"),
             }
-            save_series_list(&series_list)
         }
         Commands::SetNextEpisode { n } => println!("Setting next episode to {}", n),
         Commands::Remove => println!("Removing series data"),
