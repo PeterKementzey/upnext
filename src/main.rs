@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 
 mod persistence;
+mod commands;
 
 /// A simple CLI app to keep track of your progress in watching TV shows, series.
 #[derive(Parser)]
@@ -53,15 +54,55 @@ enum Commands {
     Edit,
 }
 
+fn get_toml_path() -> String {
+    let home = std::env::var("HOME").expect("Could not get home directory");
+    format!("{}/.upnext.toml", home)
+}
+
+fn get_series_list() -> persistence::SeriesList {
+    let toml_path = get_toml_path();
+    match persistence::read_toml_file(&toml_path) {
+        Ok(series_list) => series_list,
+        Err(_) => {
+            let series_list = persistence::SeriesList::new();
+            persistence::write_toml_file(&toml_path, &series_list).expect("Could not write toml file");
+            series_list
+        }
+    }
+}
+
+fn save_series_list(series_list: &persistence::SeriesList) {
+    let toml_path = get_toml_path();
+    persistence::write_toml_file(&toml_path, series_list).expect("Could not write toml file");
+}
+
 fn main() {
     let cli = Cli::parse();
 
+
     match &cli.command {
-        Commands::Init => println!("Initializing series"),
+        Commands::Init => {
+            println!("Initializing series");
+            let mut series_list = get_series_list();
+            series_list.init_series();
+            save_series_list(&series_list);
+        }
         Commands::Play => println!("Playing series"),
         Commands::Next => println!("Playing next episode"),
         Commands::Info => println!("Printing series information"),
-        Commands::IncrementEpisode { n } => println!("Incrementing episode by {}", n),
+        Commands::IncrementEpisode { n } => {
+            println!("Incrementing episode by {}", n);
+            let mut series_list = get_series_list();
+            let series = series_list.series.iter_mut().find(|s| s.path == std::env::current_dir().unwrap().to_str().unwrap());
+            match series {
+                Some(series) => {
+                    series.next_episode += *n as u32;
+                    save_series_list(&series_list);
+                }
+                None => println!("No series found in current directory"),
+            }
+            save_series_list(&series_list)
+        }
         Commands::SetNextEpisode { n } => println!("Setting next episode to {}", n),
         Commands::Remove => println!("Removing series data"),
         Commands::List => println!("Listing all series"),
