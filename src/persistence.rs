@@ -1,4 +1,3 @@
-use std::fmt::Display;
 use std::fs;
 use std::io::Write;
 use std::path::Path;
@@ -7,7 +6,7 @@ use toml_edit::{ArrayOfTables, Item};
 
 use crate::errors::{Result, UpNextError};
 use crate::persistence::utils::{get_table_by_path_or_create_new, set_or_create_next_episode};
-use crate::schema::{Series, SeriesList};
+use crate::schema::SeriesList;
 
 pub fn read_toml_file<P: AsRef<Path>>(path: P) -> Result<SeriesList> {
     let content = fs::read_to_string(path)?;
@@ -43,24 +42,7 @@ pub fn write_toml_file<P: AsRef<Path>>(path: P, series_list: &SeriesList) -> Res
     Ok(())
 }
 
-impl Display for Series {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn get_toml_table(s: &Series) -> Result<toml_edit::Table> {
-            // Read the existing TOML file to preserve comments or create new document
-            let path = crate::utils::get_toml_path()?;
-            let doc = utils::parse_toml_doc_from_path(path)?;
-
-            let old_array_of_series = utils::get_or_create_series_table(&doc)?;
-            let mut series_table = get_table_by_path_or_create_new(s, &old_array_of_series)?;
-            set_or_create_next_episode(s.next_episode, &mut series_table)?;
-            Ok(series_table)
-        }
-        let toml_data = get_toml_table(self).map_err(|_| core::fmt::Error)?;
-        write!(f, "{}", toml_data)
-    }
-}
-
-mod utils {
+pub mod utils {
     use std::{fs, io};
     use std::borrow::Cow;
     use std::path::Path;
@@ -70,7 +52,7 @@ mod utils {
     use crate::errors::{Result, UpNextError};
     use crate::schema::Series;
 
-    pub(super) fn parse_toml_doc_from_path<P: AsRef<Path>>(path: P) -> Result<DocumentMut> {
+    pub fn parse_toml_doc_from_path<P: AsRef<Path>>(path: P) -> Result<DocumentMut> {
         let content = fs::read_to_string(&path);
         let doc = match content {
             Ok(content) => content.parse::<DocumentMut>(),
@@ -85,7 +67,7 @@ mod utils {
         Ok(doc)
     }
 
-    pub(super) fn get_or_create_series_table(doc: &DocumentMut) -> Result<Cow<ArrayOfTables>> {
+    pub fn get_or_create_series_table(doc: &DocumentMut) -> Result<Cow<ArrayOfTables>> {
         Ok(
             match doc.get("series") {
                 Some(series_array) => {
@@ -96,7 +78,7 @@ mod utils {
             })
     }
 
-    pub(super) fn get_table_by_path_or_create_new(series: &Series, array_of_series: &ArrayOfTables) -> Result<toml_edit::Table> {
+    pub fn get_table_by_path_or_create_new(series: &Series, array_of_series: &ArrayOfTables) -> Result<toml_edit::Table> {
         (*array_of_series).iter().find_map(|table| {
             match table["path"].as_str() {
                 Some(path) if path == series.path => Some(Ok(table.clone())),
@@ -110,7 +92,7 @@ mod utils {
         })
     }
 
-    pub(super) fn set_or_create_next_episode(next_episode: i64, series_table: &mut toml_edit::Table) -> Result<()> {
+    pub fn set_or_create_next_episode(next_episode: i64, series_table: &mut toml_edit::Table) -> Result<()> {
         // Update or create next_episode field
         Ok(if let Some(next_episode_item) = series_table.get_mut("next_episode") {
             // Get decoration

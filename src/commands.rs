@@ -36,15 +36,15 @@ pub(super) fn increment(n: i64) -> Result<()> {
 
 mod utils {
     use crate::errors::{Result, UpNextError};
-    use crate::persistence;
+    use crate::{persistence, utils};
     use crate::schema::SeriesList;
 
     pub(super) fn save_series_list(series_list: &SeriesList) -> Result<()> {
-        persistence::write_toml_file(crate::utils::get_toml_path()?, series_list)
+        persistence::write_toml_file(utils::get_toml_path()?, series_list)
     }
 
     pub(super) fn load_series_list() -> Result<SeriesList> {
-        persistence::read_toml_file(crate::utils::get_toml_path()?)
+        persistence::read_toml_file(utils::get_toml_path()?)
     }
 
     pub(super) fn get_cwd() -> Result<String> {
