@@ -5,6 +5,7 @@ mod persistence;
 mod commands;
 #[cfg(test)]
 mod tests;
+mod errors;
 
 /// A simple CLI app to keep track of your progress in watching TV shows, series.
 #[derive(Parser)]
