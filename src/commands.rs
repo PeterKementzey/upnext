@@ -11,6 +11,11 @@ pub(super) fn print_series_info() -> Result<()> {
     Ok(println!("{}", series))
 }
 
+pub(super) fn print_all_series_info() -> Result<()> {
+    let content = std::fs::read_to_string(crate::utils::get_toml_path()?)?;
+    Ok(println!("{}", content))
+}
+
 pub(super) fn init() -> Result<()> {
     let mut series_list: SeriesList = load_series_list().unwrap_or_else(|_| SeriesList::new());
     let current_dir = get_cwd()?;
