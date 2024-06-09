@@ -1,3 +1,4 @@
+[[series]]
 path = "PATH"
 next_episode = 1
 

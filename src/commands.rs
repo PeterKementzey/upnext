@@ -21,7 +21,7 @@ pub(super) fn increment(n: i64) -> Result<()> {
     let series = series_list.find_series_mut(&get_cwd()?);
     match series {
         Some(series) => {
-            println!("{}\n", series);
+            println!("{}", series);
             series.next_episode += n;
             save_series_list(&series_list)?;
 

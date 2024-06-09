@@ -24,6 +24,6 @@ impl Display for Series {
             Ok(series_table)
         }
         let toml_data = get_toml_table(self).map_err(|_| core::fmt::Error)?;
-        write!(f, "{}", toml_data)
+        write!(f, "[[series]]\n{}", toml_data)
     }
 }

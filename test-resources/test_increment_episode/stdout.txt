@@ -1,3 +1,4 @@
+[[series]]
 # 3
 # 4
   #5
@@ -5,7 +6,7 @@ path = "PATH" # 6666
 # 7
 next_episode = 1 # 8
 
-
+[[series]]
 # 3
 # 4
   #5
