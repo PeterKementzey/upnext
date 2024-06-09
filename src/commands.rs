@@ -64,6 +64,32 @@ pub(super) fn remove() -> Result<()> {
     Ok(println!("Series removed"))
 }
 
+pub(super) fn play_next_episode() -> Result<()> {
+    let mut series_list = load_series_list()?;
+    let current_dir = get_cwd()?;
+    let series = series_list.find_series_mut(&current_dir)?;
+    println!("{}", series);
+
+    let files = utils::find_files(&series.path)?;
+    if series.next_episode > files.len() as i64 {
+        Err(UpNextError::SeriesOver)
+    } else {
+        println!("Starting episode {} at {}\n", series.next_episode, chrono::Local::now().format("%H:%M"));
+        let file_path = &files[series.next_episode as usize - 1];
+        let _output = std::process::Command::new("vlc")
+            .arg(file_path)
+            .arg("--play-and-exit")
+            .arg("--fullscreen")
+            .output()?;
+
+        series.next_episode += 1;
+        save_series_list(&series_list)?;
+
+        let series = series_list.find_series(&current_dir)?;
+        Ok(println!("{}", series))
+    }
+}
+
 mod utils {
     use crate::{persistence, utils};
     use crate::errors::{Result, UpNextError};
@@ -79,5 +105,28 @@ mod utils {
 
     pub(super) fn get_cwd() -> Result<String> {
         std::env::current_dir()?.to_str().ok_or_else(|| UpNextError::GenericError("Could not convert cwd to string".to_string())).map(|s| s.to_string())
+    }
+
+    pub(super) fn find_files(path: &str) -> Result<Vec<String>> {
+        let extensions = ["mkv", "mp4", "avi", "flv", "mov", "wmv", "webm", "mpg", "mpeg", "m4v"];
+        let mut files = vec![];
+        // read all files in the directory
+        for entry in std::fs::read_dir(path)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_file() {
+                let ext = path.extension()
+                    .ok_or(UpNextError::GenericError(format!("Path contained no extension: {}", path.to_str().unwrap())))?
+                    .to_str()
+                    .expect("Could not convert extension to string");
+                {
+                    if extensions.contains(&ext) {
+                        files.push(path.to_str().unwrap().to_string());
+                    }
+                }
+            }
+        }
+        files.sort();
+        Ok(files)
     }
 }

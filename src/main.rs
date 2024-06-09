@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 
-use crate::commands::{increment, init, print_all_series_info, print_series_info, remove, set_next_episode};
+use crate::commands::{increment, init, play_next_episode, print_all_series_info, print_series_info, remove, set_next_episode};
 use crate::errors::UpNextError;
 
 mod persistence;
@@ -70,7 +70,7 @@ fn main() {
     let res = match &cli.command {
         Commands::Init => init(),
         // Commands::Play => println!("Playing series"),
-        // Commands::Next => println!("Playing next episode"),
+        Commands::Next => play_next_episode(),
         Commands::Info => print_series_info(),
         Commands::IncrementEpisode { n } => increment(*n),
         Commands::SetNextEpisode { n } => set_next_episode(*n),
