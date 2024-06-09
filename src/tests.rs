@@ -16,6 +16,11 @@ fn test_increment_episode() {
 }
 
 #[test]
+fn test_increment_episode_default_value() {
+    test("test_increment_episode_default_value", vec!["inc"]);
+}
+
+#[test]
 fn test_remove_from_emtpy() {
     test("test_remove_from_empty", vec!["remove"]);
 }

@@ -43,6 +43,7 @@ enum Commands {
     #[command(name = "inc")]
     IncrementEpisode {
         /// Increment by this amount. If the new episode number is equal to the total number of episodes, the series is considered complete.
+        #[arg(default_value_t = 1)]
         n: i64,
     },
     /// Set the next episode number explicitly.
