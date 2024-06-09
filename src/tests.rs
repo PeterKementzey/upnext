@@ -15,6 +15,11 @@ fn test_increment_episode() {
     test("test_increment_episode", vec!["inc", "2"]);
 }
 
+#[test]
+fn test_remove_from_emtpy() {
+    test("test_remove_from_empty", vec!["remove"]);
+}
+
 
 #[cfg(test)]
 mod utils {
@@ -103,14 +108,14 @@ mod utils {
                 3 => "after.toml",
                 _ => unreachable!(),
             });
-            println!("-----path: {:?}", path);
             fs::read_to_string(&path).map(inject_path).ok()
         }).collect();
 
-        assert!(res.iter().any(|x| x.is_some()));
+        let number_of_files_in_dir = fs::read_dir(&path).unwrap().count();
+        let number_of_identified_test_files = res.iter().filter(|x| x.is_some()).count();
+        assert_eq!(number_of_files_in_dir, number_of_identified_test_files, "Not all files in dir are identified as test files");
+        assert_ne!(number_of_files_in_dir, 0, "No files in dir");
 
-        let res = (res[0].clone(), res[1].clone(), res[2].clone(), res[3].clone());
-        println!("------res: {:?}", res);
-        res
+        (res[0].clone(), res[1].clone(), res[2].clone(), res[3].clone())
     }
 }

@@ -25,12 +25,16 @@ impl SeriesList {
         self.series.push(Series { path, next_episode: 1 });
         Ok(())
     }
-    
-    pub fn find_series_mut(&mut self, path: &str) -> Option<&mut Series> {
-        self.series.iter_mut().find(|s| s.path == path)
+
+    pub fn remove_series(&mut self, path: &str) {
+        self.series.retain(|s| s.path != path);
     }
-    
-    pub fn find_series(&self, path: &str) -> Option<& Series> {
-        self.series.iter().find(|s| s.path == path)
+
+    pub fn find_series_mut(&mut self, path: &str) -> Result<&mut Series> {
+        self.series.iter_mut().find(|s| s.path == path).ok_or_else(|| UpNextError::MissingSeries)
+    }
+
+    pub fn find_series(&self, path: &str) -> Result<&Series> {
+        self.series.iter().find(|s| s.path == path).ok_or_else(|| UpNextError::MissingSeries)
     }
 }

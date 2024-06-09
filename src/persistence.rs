@@ -10,6 +10,9 @@ use crate::schema::SeriesList;
 
 pub fn read_toml_file<P: AsRef<Path>>(path: P) -> Result<SeriesList> {
     let content = fs::read_to_string(path)?;
+    if content.is_empty() {
+        return Ok(SeriesList::new());
+    }
     let series_list: SeriesList = toml::from_str(&content)
         .map_err(|err| UpNextError::SchemaError(err.message().to_string()))?;
     Ok(series_list)

@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 
-use crate::commands::{increment, init};
+use crate::commands::{increment, init, remove};
 use crate::errors::UpNextError;
 
 mod persistence;
@@ -67,17 +67,13 @@ fn main() {
     let cli = Cli::parse();
 
     let res = match &cli.command {
-        Commands::Init => {
-            init()
-        }
+        Commands::Init => init(),
         // Commands::Play => println!("Playing series"),
         // Commands::Next => println!("Playing next episode"),
         // Commands::Info => println!("Printing series information"),
-        Commands::IncrementEpisode { n } => {
-            increment(*n)
-        }
+        Commands::IncrementEpisode { n } => increment(*n),
         // Commands::SetNextEpisode { n } => println!("Setting next episode to {}", n),
-        // Commands::Remove => println!("Removing series data"),
+        Commands::Remove => remove(),
         // Commands::List => println!("Listing all series"),
         // Commands::Edit => println!("Opening the toml file in the default editor"),
         _ => Err(UpNextError::Unimplemented),

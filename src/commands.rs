@@ -7,6 +7,7 @@ pub static APP_NAME: &str = "upnext";
 pub(super) fn init() -> Result<()> {
     let mut series_list: SeriesList = load_series_list().unwrap_or_else(|_| SeriesList::new());
     let current_dir = get_cwd()?;
+    
     series_list.add_series(current_dir.clone())?;
     let series = series_list.series.last().ok_or_else(|| UpNextError::GenericError("Could not get last series".to_string()))?;
     save_series_list(&series_list)?;
@@ -14,29 +15,33 @@ pub(super) fn init() -> Result<()> {
 }
 
 pub(super) fn increment(n: i64) -> Result<()> {
-    let mut series_list = load_series_list().map_err(|err| match err {
-        UpNextError::IoError(e) if e.kind() == std::io::ErrorKind::NotFound => UpNextError::MissingSeries,
-        _ => err,
-    })?;
-    let series = series_list.find_series_mut(&get_cwd()?);
-    match series {
-        Some(series) => {
-            println!("{}", series);
-            series.next_episode += n;
-            save_series_list(&series_list)?;
+    let mut series_list = load_series_list()?;
+    let current_dir = get_cwd()?;
+    let series = series_list.find_series_mut(&current_dir)?;
+    println!("{}", series);
+    
+    series.next_episode += n;
+    save_series_list(&series_list)?;
 
-            let series = series_list
-                .find_series(&get_cwd()?)
-                .ok_or_else(|| UpNextError::MissingSeries)?;
-            Ok(println!("{}", series))
-        }
-        None => Err(UpNextError::MissingSeries),
-    }
+    let series = series_list.find_series(&current_dir)?;
+    Ok(println!("{}", series))
+}
+
+pub(super) fn remove() -> Result<()> {
+    let mut series_list = load_series_list()?;
+    let current_dir = get_cwd()?;
+    let series = series_list.find_series(&current_dir)?;
+    println!("{}", series);
+    
+    series_list.remove_series(&get_cwd()?);
+    save_series_list(&series_list)?;
+    
+    Ok(println!("Series removed"))
 }
 
 mod utils {
-    use crate::errors::{Result, UpNextError};
     use crate::{persistence, utils};
+    use crate::errors::{Result, UpNextError};
     use crate::schema::SeriesList;
 
     pub(super) fn save_series_list(series_list: &SeriesList) -> Result<()> {

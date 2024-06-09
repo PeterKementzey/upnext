@@ -16,7 +16,7 @@ impl Display for UpNextError {
             UpNextError::GenericError(e) => write!(f, "Error: {}", e),
             UpNextError::IoError(e) => write!(f, "IO error: {}", e),
             UpNextError::SchemaError(e) => write!(f, "Schema error: {}", e),
-            UpNextError::MissingSeries => write!(f, "No series found. Please run `{} init` first.", crate::commands::APP_NAME),
+            UpNextError::MissingSeries => write!(f, "No series found for current working directory. Please run `{} init` first.", crate::commands::APP_NAME),
             UpNextError::SeriesAlreadyExists => write!(f, "Current directory is already initialized."),
             UpNextError::Unimplemented => write!(f, "Unimplemented"),
         }
