@@ -30,6 +30,11 @@ fn test_print_series_info() {
     test("test_print_series_info", vec!["info"]);
 }
 
+#[test]
+fn test_set_next_episode() {
+    test("test_set_next_episode", vec!["set", "42"]);
+}
+
 
 #[cfg(test)]
 mod utils {

@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 
-use crate::commands::{increment, init, print_all_series_info, print_series_info, remove};
+use crate::commands::{increment, init, print_all_series_info, print_series_info, remove, set_next_episode};
 use crate::errors::UpNextError;
 
 mod persistence;
@@ -50,7 +50,7 @@ enum Commands {
     #[command(name = "set")]
     SetNextEpisode {
         /// The episode number to set. Starts at 1. If equal to the total number of episodes, the series is considered complete.
-        n: usize,
+        n: i64,
     },
     /// Remove data about the series in current directory.
     #[command(name = "remove")]
@@ -73,7 +73,7 @@ fn main() {
         // Commands::Next => println!("Playing next episode"),
         Commands::Info => print_series_info(),
         Commands::IncrementEpisode { n } => increment(*n),
-        // Commands::SetNextEpisode { n } => println!("Setting next episode to {}", n),
+        Commands::SetNextEpisode { n } => set_next_episode(*n),
         Commands::Remove => remove(),
         Commands::List => print_all_series_info(),
         // Commands::Edit => println!("Opening the toml file in the default editor"),

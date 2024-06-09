@@ -39,6 +39,19 @@ pub(super) fn increment(n: i64) -> Result<()> {
     Ok(println!("{}", series))
 }
 
+pub(super) fn set_next_episode(n: i64) -> Result<()> {
+    let mut series_list = load_series_list()?;
+    let current_dir = get_cwd()?;
+    let series = series_list.find_series_mut(&current_dir)?;
+    println!("{}", series);
+
+    series.next_episode = n;
+    save_series_list(&series_list)?;
+
+    let series = series_list.find_series(&current_dir)?;
+    Ok(println!("{}", series))
+}
+
 pub(super) fn remove() -> Result<()> {
     let mut series_list = load_series_list()?;
     let current_dir = get_cwd()?;
