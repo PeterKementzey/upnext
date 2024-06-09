@@ -99,6 +99,67 @@ pub(super) fn play_next_episode() -> Result<()> {
     }
 }
 
+pub(super) fn play() -> Result<()> {
+    let mut series_list = load_series_list()?;
+    let current_dir = get_cwd()?;
+    let (files, mut next_episode) = {
+        let series = series_list.find_series(&current_dir)?;
+        let files = utils::find_files(&series.path)?;
+        println!("{}", series);
+        (files, series.next_episode)
+    };
+
+    if next_episode <= files.len() as i64 {
+        let file_path = &files[next_episode as usize - 1];
+        player::play_in_vlc(file_path)?;
+        next_episode += 1;
+        let series_mut = series_list.find_series_mut(&current_dir)?;
+        series_mut.next_episode = next_episode;
+        save_series_list(&series_list)?;
+        let series = series_list.find_series(&current_dir)?;
+        println!("{}", series);
+        Ok(())
+    } else {
+        Err(UpNextError::SeriesOver)
+    }?;
+
+    while next_episode <= files.len() as i64 {
+        player::countdown(8);
+        println!("Starting episode {} at {}.\n", next_episode, chrono::Local::now().format("%H:%M"));
+        let file_path = &files[next_episode as usize - 1];
+        player::play_in_vlc(file_path)?;
+        next_episode += 1;
+        let series_mut = series_list.find_series_mut(&current_dir)?;
+        series_mut.next_episode = next_episode;
+        save_series_list(&series_list)?;
+        let series = series_list.find_series(&current_dir)?;
+        println!("{}", series);
+    }
+
+    Err(UpNextError::SeriesOver)
+}
+
+mod player {
+    use crate::errors::Result;
+
+    pub(super) fn play_in_vlc(file_path: &str) -> Result<()> {
+        let _output = std::process::Command::new("vlc")
+            .arg(file_path)
+            .arg("--play-and-exit")
+            .arg("--fullscreen")
+            .output()?;
+        Ok(())
+    }
+
+    pub(super) fn countdown(seconds: u64) {
+        println!("Playing next episode in {} seconds...", seconds);
+        for i in (0..(seconds)).rev() {
+            std::thread::sleep(std::time::Duration::from_secs(1));
+            println!("{}", i);
+        }
+    }
+}
+
 mod utils {
     use crate::{persistence, utils};
     use crate::errors::{Result, UpNextError};
