@@ -60,7 +60,7 @@ def increment_episode_count(n: Annotated[Optional[int], typer.Argument()] = 1):
 
 
 @app.command()
-def reset():
+def remove():
     """
     Remove data about the series in current directory.
     :return:
@@ -70,6 +70,15 @@ def reset():
 
 
 @app.command()
+def edit():
+    """
+    Open the yaml file in the default editor.
+    :return:
+    """
+    app_logic.edit_yaml_file()
+
+
+@app.command("list")
 def print_all():
     """
     Print all series information.
@@ -121,4 +130,4 @@ def series_over_actions():
     print("Series over.")
     user_wants_to_reset = typer.confirm("Do you want to reset the series?")
     if user_wants_to_reset:
-        reset()
+        remove()

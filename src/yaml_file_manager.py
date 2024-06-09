@@ -1,12 +1,18 @@
 import logging as log
 import os
 from pathlib import Path
+from sys import stdout
 
 import ruamel.yaml
+from ruamel.yaml import CommentedMap
+
+from validations import validate
 
 
 class YamlFileManager:
     yaml_engine = ruamel.yaml.YAML()
+    yaml_engine.width = 4096
+    yaml_engine.preserve_quotes = True
     yaml_path: Path
     yaml_data: list[dict]
 
@@ -32,17 +38,19 @@ class YamlFileManager:
             return
         with open(self.yaml_path) as file:
             self.yaml_data = self.yaml_engine.load(file)
-
-            # validate(self.yaml_data)
-
+            validate(self.yaml_data)
             log.info(f"Read {self.yaml_path}:")
             self._log_yaml_data()
             return
+
+    def print_to_stdout(self, data):
+        self.yaml_engine.dump(data, stdout)
 
     def save(self) -> None:
         """
         Write the yaml string to the yaml file in the home folder.
         """
+        # TODO maybe check if already printed is true (by episode number)
         with open(self.yaml_path, 'w') as file:
             self.yaml_engine.dump(self.yaml_data, file)
             log.info(f"Wrote to {self.yaml_path}:")
@@ -54,7 +62,7 @@ class YamlFileManager:
         Create a new series with the given path.
         """
         return {
-            "path": path,
+            "path": ruamel.yaml.scalarstring.SingleQuotedScalarString(path),
             "next_episode": 1
         }
 
@@ -84,6 +92,3 @@ class YamlFileManager:
         Remove the series with the given path.
         """
         self.yaml_data = [s for s in self.yaml_data if s["path"] != path]
-
-    def all_data(self) -> list[dict]:
-        return self.yaml_data

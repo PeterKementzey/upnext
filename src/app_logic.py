@@ -30,11 +30,11 @@ class AppLogic:
     def print_info(self):
         series = self._ensure_series_not_null()
         print("---")
-        ruamel.yaml.YAML().dump([series], stdout)
+        self.yaml_file_manager.print_to_stdout([series])
 
     def print_all(self):
         print("---")
-        ruamel.yaml.YAML().dump(self.yaml_file_manager.all_data(), stdout)
+        self.yaml_file_manager.print_to_stdout(self.yaml_file_manager.yaml_data)
 
     def initialize_directory(self):
         if self.series:
@@ -73,6 +73,9 @@ class AppLogic:
             print(f"Starting episode  {series['next_episode']} at {datetime.now().strftime('%H:%M')}")
             file_path = files[series["next_episode"] - 1]
             self._play_file_in_vlc(file_path)
+
+    def edit_yaml_file(self):
+        subprocess.call(["xdg-open", self.yaml_file_manager.yaml_path])
 
     @staticmethod
     def _find_files(directory, extensions):
