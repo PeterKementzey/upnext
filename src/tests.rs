@@ -25,6 +25,11 @@ fn test_remove_from_emtpy() {
     test("test_remove_from_empty", vec!["remove"]);
 }
 
+#[test]
+fn test_print_series_info() {
+    test("test_print_series_info", vec!["info"]);
+}
+
 
 #[cfg(test)]
 mod utils {

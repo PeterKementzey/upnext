@@ -4,10 +4,17 @@ use crate::schema::SeriesList;
 
 pub static APP_NAME: &str = "upnext";
 
+pub(super) fn print_series_info() -> Result<()> {
+    let series_list = load_series_list()?;
+    let current_dir = get_cwd()?;
+    let series = series_list.find_series(&current_dir)?;
+    Ok(println!("{}", series))
+}
+
 pub(super) fn init() -> Result<()> {
     let mut series_list: SeriesList = load_series_list().unwrap_or_else(|_| SeriesList::new());
     let current_dir = get_cwd()?;
-    
+
     series_list.add_series(current_dir.clone())?;
     let series = series_list.series.last().ok_or_else(|| UpNextError::GenericError("Could not get last series".to_string()))?;
     save_series_list(&series_list)?;
@@ -19,7 +26,7 @@ pub(super) fn increment(n: i64) -> Result<()> {
     let current_dir = get_cwd()?;
     let series = series_list.find_series_mut(&current_dir)?;
     println!("{}", series);
-    
+
     series.next_episode += n;
     save_series_list(&series_list)?;
 
@@ -32,10 +39,10 @@ pub(super) fn remove() -> Result<()> {
     let current_dir = get_cwd()?;
     let series = series_list.find_series(&current_dir)?;
     println!("{}", series);
-    
+
     series_list.remove_series(&get_cwd()?);
     save_series_list(&series_list)?;
-    
+
     Ok(println!("Series removed"))
 }
 
