@@ -30,6 +30,18 @@ impl SeriesList {
         self.series.retain(|s| s.path != path);
     }
 
+    pub fn find_series_index(&self, path: &str) -> Result<usize> {
+        self.series.iter().position(|s| s.path == path).ok_or_else(|| UpNextError::MissingSeries)
+    }
+
+    pub fn at(&self, index: usize) -> Result<&Series> {
+        self.series.get(index).ok_or_else(|| UpNextError::MissingSeries)
+    }
+
+    pub fn at_mut(&mut self, index: usize) -> Result<&mut Series> {
+        self.series.get_mut(index).ok_or_else(|| UpNextError::MissingSeries)
+    }
+
     pub fn find_series_mut(&mut self, path: &str) -> Result<&mut Series> {
         self.series.iter_mut().find(|s| s.path == path).ok_or_else(|| UpNextError::MissingSeries)
     }

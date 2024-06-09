@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand};
 
 use crate::commands::{edit_in_default_editor, increment, init, play, play_next_episode, print_all_series_info, print_series_info, remove, set_next_episode};
 
-mod persistence;
+mod data_management;
 mod commands;
 #[cfg(test)]
 mod tests;
