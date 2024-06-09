@@ -42,20 +42,18 @@ mod utils {
     use std::path::PathBuf;
     use std::process::Command;
 
-    static MUTEX: std::sync::Mutex<i32> = std::sync::Mutex::new(1);
-
     pub fn test(name: &str, args: Vec<&str>) {
-        let (expected_stdout, expected_stderr, before, after) = read_test_files(name);
-        let (stdout, stderr, file_content) = match MUTEX.lock() {
-            Ok(_guard) => {
-                if let Some(before) = before {
-                    set_toml_file(before);
-                } else {
-                    delete_toml_file();
-                }
-                run_app(args)
+        let backup = save_toml_file();
+
+
+        let (toml_path, expected_stdout, expected_stderr, before, after) = read_test_files(name);
+        let (stdout, stderr, file_content) = {
+            if let Some(before) = before {
+                set_toml_file(before, PathBuf::from(&toml_path));
+            } else {
+                delete_toml_file(PathBuf::from(&toml_path));
             }
-            Err(poisoned) => panic!("Mutex poisoned: {:?}", poisoned),
+            run_app(&args, &toml_path)
         };
         println!("stdout: {}", String::from_utf8_lossy(&stdout));
         println!("stderr: {}", String::from_utf8_lossy(&stderr));
@@ -66,43 +64,43 @@ mod utils {
             assert_eq!(String::from_utf8_lossy(&stderr), expected_stderr);
         }
         assert_eq!(file_content, after);
+
+        delete_toml_file(PathBuf::from(&toml_path));
+
+
+        let toml_file_at_end = save_toml_file();
+        assert_eq!(toml_file_at_end, backup);
     }
 
     fn cargo_mainfest_dir() -> String {
         std::env::var("CARGO_MANIFEST_DIR").unwrap()
     }
 
-    fn toml_file_path() -> PathBuf {
-        let mut path = dirs::home_dir().unwrap();
-        path.push(".upnext.toml");
-        path
-    }
-
-    fn delete_toml_file() {
-        let path = toml_file_path();
+    fn delete_toml_file(path: PathBuf) {
         if path.exists() {
             fs::remove_file(path).unwrap();
         }
     }
 
-    fn set_toml_file(content: String) {
-        fs::write(toml_file_path(), content).unwrap();
+    fn set_toml_file(content: String, path: PathBuf) {
+        fs::write(path, content).unwrap();
     }
 
-    fn run_app(args: Vec<&str>) -> (Vec<u8>, Vec<u8>, Option<String>) {
+    fn run_app(args: &Vec<&str>, toml_path: &String) -> (Vec<u8>, Vec<u8>, Option<String>) {
         let mut path = PathBuf::from(cargo_mainfest_dir());
         path.push("target/debug/upnext");
         let output = Command::new(path)
             .args(args)
+            .env("UPNEXT_CONFIG_PATH", toml_path.clone())
             .output()
             .expect("Failed to execute command");
-        let file_content = fs::read_to_string(&toml_file_path()).unwrap();
+        let file_content = fs::read_to_string(toml_path).unwrap();
 
         (output.stdout, output.stderr, Some(file_content))
     }
 
     /// returns expected_stdout, expected_stderr, .upnext.toml at start, .upnext.toml at end
-    fn read_test_files(test_name: &str) -> (Option<String>, Option<String>, Option<String>, Option<String>) {
+    fn read_test_files(test_name: &str) -> (String, Option<String>, Option<String>, Option<String>, Option<String>) {
         fn inject_path(content: String) -> String {
             content.replace("PATH", &cargo_mainfest_dir())
         }
@@ -126,11 +124,31 @@ mod utils {
             fs::read_to_string(&path).map(inject_path).ok()
         }).collect();
 
+        let toml_path: String = {
+            let mut toml_path = path.clone();
+            toml_path.push("res.toml");
+            toml_path.into_os_string().into_string().unwrap()
+        };
+
         let number_of_files_in_dir = fs::read_dir(&path).unwrap().count();
         let number_of_identified_test_files = res.iter().filter(|x| x.is_some()).count();
         assert_eq!(number_of_files_in_dir, number_of_identified_test_files, "Not all files in dir are identified as test files");
         assert_ne!(number_of_files_in_dir, 0, "No files in dir");
 
-        (res[0].clone(), res[1].clone(), res[2].clone(), res[3].clone())
+        (toml_path, res[0].clone(), res[1].clone(), res[2].clone(), res[3].clone())
+    }
+
+    fn save_toml_file() -> Option<String> {
+        fs::read_to_string(home::toml_file_path()).ok()
+    }
+
+    mod home {
+        use std::path::PathBuf;
+
+        pub(super) fn toml_file_path() -> PathBuf {
+            let mut path = dirs::home_dir().unwrap();
+            path.push(".upnext.toml");
+            path
+        }
     }
 }
