@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 
-use crate::commands::{increment, init, play_next_episode, print_all_series_info, print_series_info, remove, set_next_episode};
+use crate::commands::{edit_in_default_editor, increment, init, play_next_episode, print_all_series_info, print_series_info, remove, set_next_episode};
 use crate::errors::UpNextError;
 
 mod persistence;
@@ -76,7 +76,7 @@ fn main() {
         Commands::SetNextEpisode { n } => set_next_episode(*n),
         Commands::Remove => remove(),
         Commands::List => print_all_series_info(),
-        // Commands::Edit => println!("Opening the toml file in the default editor"),
+        Commands::Edit => edit_in_default_editor(),
         _ => Err(UpNextError::Unimplemented),
     };
 

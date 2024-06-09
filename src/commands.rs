@@ -61,7 +61,16 @@ pub(super) fn remove() -> Result<()> {
     series_list.remove_series(&get_cwd()?);
     save_series_list(&series_list)?;
 
-    Ok(println!("Series removed"))
+    Ok(println!("Series removed."))
+}
+
+pub(super) fn edit_in_default_editor() -> Result<()> {
+    let path = crate::utils::get_toml_path()?;
+    println!("Opening the toml file in the default editor.");
+    let _output = std::process::Command::new("xdg-open")
+        .arg(path)
+        .output()?;
+    Ok(())
 }
 
 pub(super) fn play_next_episode() -> Result<()> {
@@ -74,7 +83,7 @@ pub(super) fn play_next_episode() -> Result<()> {
     if series.next_episode > files.len() as i64 {
         Err(UpNextError::SeriesOver)
     } else {
-        println!("Starting episode {} at {}\n", series.next_episode, chrono::Local::now().format("%H:%M"));
+        println!("Starting episode {} at {}.\n", series.next_episode, chrono::Local::now().format("%H:%M"));
         let file_path = &files[series.next_episode as usize - 1];
         let _output = std::process::Command::new("vlc")
             .arg(file_path)
@@ -118,7 +127,7 @@ mod utils {
                 let ext = path.extension()
                     .ok_or(UpNextError::GenericError(format!("Path contained no extension: {}", path.to_str().unwrap())))?
                     .to_str()
-                    .expect("Could not convert extension to string");
+                    .expect("Could not convert extension to string.");
                 {
                     if extensions.contains(&ext) {
                         files.push(path.to_str().unwrap().to_string());
