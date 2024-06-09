@@ -1,4 +1,4 @@
-use crate::commands::utils::{get_cwd, load_series_list, save_series_list};
+use crate::commands::utils::{find_files, get_cwd, load_series_list, save_series_list};
 use crate::errors::{Result, UpNextError};
 use crate::schema::SeriesList;
 
@@ -79,17 +79,13 @@ pub(super) fn play_next_episode() -> Result<()> {
     let series = series_list.find_series_mut(&current_dir)?;
     println!("{}", series);
 
-    let files = utils::find_files(&series.path)?;
+    let files = find_files(&series.path)?;
     if series.next_episode > files.len() as i64 {
         Err(UpNextError::SeriesOver)
     } else {
         println!("Starting episode {} at {}.\n", series.next_episode, chrono::Local::now().format("%H:%M"));
         let file_path = &files[series.next_episode as usize - 1];
-        let _output = std::process::Command::new("vlc")
-            .arg(file_path)
-            .arg("--play-and-exit")
-            .arg("--fullscreen")
-            .output()?;
+        player::play_in_vlc(file_path)?;
 
         series.next_episode += 1;
         save_series_list(&series_list)?;
@@ -102,35 +98,27 @@ pub(super) fn play_next_episode() -> Result<()> {
 pub(super) fn play() -> Result<()> {
     let mut series_list = load_series_list()?;
     let current_dir = get_cwd()?;
-    let (files, mut next_episode) = {
-        let series = series_list.find_series(&current_dir)?;
-        let files = utils::find_files(&series.path)?;
-        println!("{}", series);
-        (files, series.next_episode)
-    };
+    let i = series_list.find_series_index(&current_dir)?;
+    let series = series_list.at_mut(i)?;
+    let files = find_files(&series.path)?;
 
-    if next_episode <= files.len() as i64 {
-        let file_path = &files[next_episode as usize - 1];
+    println!("{}", series);
+    if series_list.at(i)?.next_episode <= files.len() as i64 {
+        let series = series_list.at_mut(i)?;
+        let file_path = &files[series.next_episode as usize - 1];
         player::play_in_vlc(file_path)?;
-        next_episode += 1;
-        let series_mut = series_list.find_series_mut(&current_dir)?;
-        series_mut.next_episode = next_episode;
+        series.next_episode += 1;
         save_series_list(&series_list)?;
         let series = series_list.find_series(&current_dir)?;
         println!("{}", series);
-        Ok(())
-    } else {
-        Err(UpNextError::SeriesOver)
-    }?;
-
-    while next_episode <= files.len() as i64 {
+    }
+    while series_list.at(i)?.next_episode <= files.len() as i64 {
+        let series = series_list.at_mut(i)?;
         player::countdown(8);
-        println!("Starting episode {} at {}.\n", next_episode, chrono::Local::now().format("%H:%M"));
-        let file_path = &files[next_episode as usize - 1];
+        println!("Starting episode {} at {}.\n", series.next_episode, chrono::Local::now().format("%H:%M"));
+        let file_path = &files[series.next_episode as usize - 1];
         player::play_in_vlc(file_path)?;
-        next_episode += 1;
-        let series_mut = series_list.find_series_mut(&current_dir)?;
-        series_mut.next_episode = next_episode;
+        series.next_episode += 1;
         save_series_list(&series_list)?;
         let series = series_list.find_series(&current_dir)?;
         println!("{}", series);
@@ -161,7 +149,8 @@ mod player {
 }
 
 mod utils {
-    use crate::{persistence, utils};
+    use crate::utils;
+    use crate::data_management::persistence;
     use crate::errors::{Result, UpNextError};
     use crate::schema::SeriesList;
 
