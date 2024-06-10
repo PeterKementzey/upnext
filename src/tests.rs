@@ -21,7 +21,7 @@ fn test_increment_episode_default_value() {
 }
 
 #[test]
-fn test_remove_from_emtpy() {
+fn test_remove_from_empty() {
     test("test_remove_from_empty", vec!["remove"]);
 }
 
@@ -72,7 +72,7 @@ mod utils {
         assert_eq!(toml_file_at_end, backup);
     }
 
-    fn cargo_mainfest_dir() -> String {
+    fn cargo_manifest_dir() -> String {
         std::env::var("CARGO_MANIFEST_DIR").unwrap()
     }
 
@@ -87,7 +87,7 @@ mod utils {
     }
 
     fn run_app(args: &Vec<&str>, toml_path: &String) -> (Vec<u8>, Vec<u8>, Option<String>) {
-        let mut path = PathBuf::from(cargo_mainfest_dir());
+        let mut path = PathBuf::from(cargo_manifest_dir());
         path.push("target/debug/upnext");
         let output = Command::new(path)
             .args(args)
@@ -102,11 +102,11 @@ mod utils {
     /// returns expected_stdout, expected_stderr, .upnext.toml at start, .upnext.toml at end
     fn read_test_files(test_name: &str) -> (String, Option<String>, Option<String>, Option<String>, Option<String>) {
         fn inject_path(content: String) -> String {
-            content.replace("PATH", &cargo_mainfest_dir())
+            content.replace("PATH", &cargo_manifest_dir())
         }
 
         let path = {
-            let mut path = PathBuf::from(cargo_mainfest_dir());
+            let mut path = PathBuf::from(cargo_manifest_dir());
             path.push("test-resources");
             path.push(test_name);
             path

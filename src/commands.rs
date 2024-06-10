@@ -141,7 +141,7 @@ mod player {
 
     pub(super) fn countdown(seconds: u64) {
         println!("Playing next episode in {} seconds...", seconds);
-        for i in (0..(seconds)).rev() {
+        for i in (0..seconds).rev() {
             std::thread::sleep(std::time::Duration::from_secs(1));
             println!("{}", i);
         }
