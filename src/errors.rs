@@ -19,7 +19,7 @@ impl Display for UpNextError {
             UpNextError::SchemaError(e) => write!(f, "Schema error: {}", e),
             UpNextError::MissingSeries => write!(f, "No series found for current working directory. Please run `{} init` first.", crate::commands::APP_NAME),
             UpNextError::SeriesAlreadyExists => write!(f, "Current directory is already initialized."),
-            UpNextError::SeriesOver => write!(f, "Series is over. No more episodes left in directory."),
+            UpNextError::SeriesOver => write!(f, "Season is over. No more episodes left in directory."),
             UpNextError::Unimplemented => write!(f, "Unimplemented"),
         }
     }

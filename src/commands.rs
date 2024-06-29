@@ -97,8 +97,8 @@ pub(super) fn play_next_episode() -> Result<()> {
     if series.next_episode > files.len() as i64 {
         Err(UpNextError::SeriesOver)
     } else {
-        println!("Starting episode {} at {}.\n", series.next_episode, chrono::Local::now().format("%H:%M"));
-        let file_path = &files[series.next_episode as usize - 1];
+        let file_path = &files[usize::try_from(series.next_episode)? - 1];
+        println!("Starting episode \"{}\" at {}.\n", file_path.file_name().unwrap().to_string_lossy(), chrono::Local::now().format("%H:%M"));
         player::play_in_vlc(file_path)?;
 
         series.next_episode += 1;
@@ -129,8 +129,8 @@ pub(super) fn play() -> Result<()> {
     while series_list.at(i)?.next_episode <= files.len() as i64 {
         let series = series_list.at_mut(i)?;
         player::countdown(8);
-        println!("Starting episode {} at {}.\n", series.next_episode, chrono::Local::now().format("%H:%M"));
-        let file_path = &files[series.next_episode as usize - 1];
+        let file_path = &files[usize::try_from(series.next_episode)? - 1];
+        println!("Starting episode \"{}\" at {}.\n", file_path.file_name().unwrap().to_string_lossy(), chrono::Local::now().format("%H:%M"));
         player::play_in_vlc(file_path)?;
         series.next_episode += 1;
         save_series_list(&series_list)?;
@@ -142,9 +142,11 @@ pub(super) fn play() -> Result<()> {
 }
 
 mod player {
+    use std::path::Path;
+
     use crate::errors::Result;
 
-    pub(super) fn play_in_vlc(file_path: &str) -> Result<()> {
+    pub(super) fn play_in_vlc(file_path: &Path) -> Result<()> {
         let _output = std::process::Command::new("vlc")
             .arg(file_path)
             .arg("--play-and-exit")
@@ -163,10 +165,12 @@ mod player {
 }
 
 mod utils {
-    use crate::utils;
+    use std::path::PathBuf;
+
     use crate::data_management::persistence;
     use crate::errors::{Result, UpNextError};
     use crate::schema::SeriesList;
+    use crate::utils;
 
     pub(super) fn save_series_list(series_list: &SeriesList) -> Result<()> {
         persistence::write_toml_file(utils::get_toml_path()?, series_list)
@@ -180,7 +184,7 @@ mod utils {
         std::env::current_dir()?.to_str().ok_or_else(|| UpNextError::GenericError("Could not convert cwd to string".to_string())).map(|s| s.to_string())
     }
 
-    pub(super) fn find_files(path: &str) -> Result<Vec<String>> {
+    pub(super) fn find_files(path: &str) -> Result<Vec<PathBuf>> {
         let extensions = ["mkv", "mp4", "avi", "flv", "mov", "wmv", "webm", "mpg", "mpeg", "m4v"];
         let mut files = vec![];
         // read all files in the directory
@@ -194,7 +198,7 @@ mod utils {
                     .expect("Could not convert extension to string.");
                 {
                     if extensions.contains(&ext) {
-                        files.push(path.to_str().unwrap().to_string());
+                        files.push(path);
                     }
                 }
             }
