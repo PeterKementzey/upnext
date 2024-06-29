@@ -86,6 +86,10 @@ pub(super) fn find_series(search_term: &str) -> Result<()> {
     Ok(())
 }
 
+pub(super) fn print_toml_path() -> Result<()> {
+    Ok(println!("{}", crate::utils::get_toml_path()?))
+}
+
 pub(super) fn play_next_episode() -> Result<()> {
     let mut series_list = load_series_list()?;
     let current_dir = get_cwd()?;

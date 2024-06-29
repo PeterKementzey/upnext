@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 
-use crate::commands::{edit_in_default_editor, find_series, increment, init, play, play_next_episode, print_all_series_info, print_series_info, remove, set_next_episode};
+use crate::commands::{edit_in_default_editor, find_series, increment, init, play, play_next_episode, print_all_series_info, print_series_info, print_toml_path, remove, set_next_episode};
 
 mod data_management;
 mod commands;
@@ -66,6 +66,9 @@ enum Commands {
         /// The search term.
         search_term: String,
     },
+    /// Print the path to the toml file. (For debugging purposes.)
+    #[command(name = "which")]
+    Which,
 }
 
 
@@ -83,6 +86,7 @@ fn main() {
         Commands::List => print_all_series_info(),
         Commands::Edit => edit_in_default_editor(),
         Commands::Find { search_term } => find_series(search_term),
+        Commands::Which => print_toml_path(),
     };
 
     if let Err(e) = res {
