@@ -8,12 +8,12 @@ pub(super) fn print_series_info() -> Result<()> {
     let series_list = load_series_list()?;
     let current_dir = get_cwd()?;
     let series = series_list.find_series(&current_dir)?;
-    Ok(println!("{}", series))
+    Ok(println!("{series}"))
 }
 
 pub(super) fn print_all_series_info() -> Result<()> {
     let content = std::fs::read_to_string(crate::utils::get_toml_path()?)?;
-    Ok(println!("{}", content))
+    Ok(println!("{content}"))
 }
 
 pub(super) fn init() -> Result<()> {
@@ -23,40 +23,39 @@ pub(super) fn init() -> Result<()> {
     series_list.add_series(current_dir.clone())?;
     let series = series_list.series.last().ok_or_else(|| UpNextError::GenericError("Could not get last series".to_string()))?;
     save_series_list(&series_list)?;
-    Ok(println!("{}", series))
+    Ok(println!("{series}"))
 }
 
 pub(super) fn increment(n: i64) -> Result<()> {
     let mut series_list = load_series_list()?;
     let current_dir = get_cwd()?;
     let series = series_list.find_series_mut(&current_dir)?;
-    println!("{}", series);
-
+    println!("{series}");
     series.next_episode += n;
     save_series_list(&series_list)?;
 
     let series = series_list.find_series(&current_dir)?;
-    Ok(println!("{}", series))
+    Ok(println!("{series}"))
 }
 
-pub(super) fn set_next_episode(n: i64) -> Result<()> {
+pub(super) fn set_next_episode(n: u32) -> Result<()> {
     let mut series_list = load_series_list()?;
     let current_dir = get_cwd()?;
     let series = series_list.find_series_mut(&current_dir)?;
-    println!("{}", series);
+    println!("{series}");
 
-    series.next_episode = n;
+    series.next_episode = i64::from(n);
     save_series_list(&series_list)?;
 
     let series = series_list.find_series(&current_dir)?;
-    Ok(println!("{}", series))
+    Ok(println!("{series}"))
 }
 
 pub(super) fn remove() -> Result<()> {
     let mut series_list = load_series_list()?;
     let current_dir = get_cwd()?;
     let series = series_list.find_series(&current_dir)?;
-    println!("{}", series);
+    println!("{series}");
 
     series_list.remove_series(&get_cwd()?);
     save_series_list(&series_list)?;
@@ -91,10 +90,10 @@ pub(super) fn play_next_episode() -> Result<()> {
     let mut series_list = load_series_list()?;
     let current_dir = get_cwd()?;
     let series = series_list.find_series_mut(&current_dir)?;
-    println!("{}", series);
+    println!("{series}");
 
     let files = find_files(&series.path)?;
-    if series.next_episode > files.len() as i64 {
+    if series.next_episode > i64::try_from(files.len())? {
         Err(UpNextError::SeriesOver)
     } else {
         let file_path = &files[usize::try_from(series.next_episode)? - 1];
@@ -105,7 +104,7 @@ pub(super) fn play_next_episode() -> Result<()> {
         save_series_list(&series_list)?;
 
         let series = series_list.find_series(&current_dir)?;
-        Ok(println!("{}", series))
+        Ok(println!("{series}"))
     }
 }
 
@@ -116,17 +115,17 @@ pub(super) fn play() -> Result<()> {
     let series = series_list.at_mut(i)?;
     let files = find_files(&series.path)?;
 
-    println!("{}", series);
-    if series_list.at(i)?.next_episode <= files.len() as i64 {
+    println!("{series}");
+    if series_list.at(i)?.next_episode <= i64::try_from(files.len())? {
         let series = series_list.at_mut(i)?;
-        let file_path = &files[series.next_episode as usize - 1];
+        let file_path = &files[usize::try_from(series.next_episode)? - 1];
         player::play_in_vlc(file_path)?;
         series.next_episode += 1;
         save_series_list(&series_list)?;
         let series = series_list.find_series(&current_dir)?;
-        println!("{}", series);
+        println!("{series}");
     }
-    while series_list.at(i)?.next_episode <= files.len() as i64 {
+    while series_list.at(i)?.next_episode <= i64::try_from(files.len())? {
         let series = series_list.at_mut(i)?;
         player::countdown(8);
         let file_path = &files[usize::try_from(series.next_episode)? - 1];
@@ -135,7 +134,7 @@ pub(super) fn play() -> Result<()> {
         series.next_episode += 1;
         save_series_list(&series_list)?;
         let series = series_list.find_series(&current_dir)?;
-        println!("{}", series);
+        println!("{series}");
     }
 
     Err(UpNextError::SeriesOver)
@@ -156,10 +155,10 @@ mod player {
     }
 
     pub(super) fn countdown(seconds: u64) {
-        println!("Playing next episode in {} seconds...", seconds);
+        println!("Playing next episode in {seconds} seconds...");
         for i in (0..seconds).rev() {
             std::thread::sleep(std::time::Duration::from_secs(1));
-            println!("{}", i);
+            println!("{i}");
         }
     }
 }
@@ -181,7 +180,7 @@ mod utils {
     }
 
     pub(super) fn get_cwd() -> Result<String> {
-        std::env::current_dir()?.to_str().ok_or_else(|| UpNextError::GenericError("Could not convert cwd to string".to_string())).map(|s| s.to_string())
+        std::env::current_dir()?.to_str().ok_or_else(|| UpNextError::GenericError("Could not convert cwd to string".to_string())).map(ToString::to_string)
     }
 
     pub(super) fn find_files(path: &str) -> Result<Vec<PathBuf>> {

@@ -66,7 +66,7 @@ mod formatting {
                 Ok(series_table)
             }
             let toml_data = get_toml_table(self).map_err(|_| core::fmt::Error)?;
-            write!(f, "[[series]]\n{}", toml_data)
+            write!(f, "[[series]]\n{toml_data}")
         }
     }
 }
@@ -123,7 +123,7 @@ mod utils {
 
     pub(super) fn set_or_create_next_episode(next_episode: i64, series_table: &mut toml_edit::Table) -> Result<()> {
         // Update or create next_episode field
-        Ok(if let Some(next_episode_item) = series_table.get_mut("next_episode") {
+        if let Some(next_episode_item) = series_table.get_mut("next_episode") {
             // Get decoration
             let decor = next_episode_item.as_value().ok_or_else(|| UpNextError::SchemaError("next_episode is not a value".to_string()))?.decor().clone();
             // Update value
@@ -134,6 +134,7 @@ mod utils {
             }
         } else {
             series_table["next_episode"] = value(next_episode);
-        })
+        };
+        Ok(())
     }
 }

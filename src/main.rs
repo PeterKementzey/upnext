@@ -49,7 +49,7 @@ enum Commands {
     #[command(name = "set")]
     SetNextEpisode {
         /// The episode number to set. Starts at 1. If equal to the total number of episodes, the series is considered complete.
-        n: i64,
+        n: u32,
     },
     /// Remove data about the series in current directory.
     #[command(name = "remove")]
@@ -86,6 +86,6 @@ fn main() {
     };
 
     if let Err(e) = res {
-        eprintln!("{}", e);
+        eprintln!("{e}");
     }
 }

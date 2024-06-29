@@ -14,9 +14,9 @@ pub enum UpNextError {
 impl Display for UpNextError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            UpNextError::GenericError(e) => write!(f, "Error: {}", e),
-            UpNextError::IoError(e) => write!(f, "IO error: {}", e),
-            UpNextError::SchemaError(e) => write!(f, "Schema error: {}", e),
+            UpNextError::GenericError(e) => write!(f, "Error: {e}"),
+            UpNextError::IoError(e) => write!(f, "IO error: {e}"),
+            UpNextError::SchemaError(e) => write!(f, "Schema error: {e}"),
             UpNextError::MissingSeries => write!(f, "No series found for current working directory. Please run `{} init` first.", crate::commands::APP_NAME),
             UpNextError::SeriesAlreadyExists => write!(f, "Current directory is already initialized."),
             UpNextError::SeriesOver => write!(f, "Season is over. No more episodes left in directory."),
@@ -34,6 +34,12 @@ impl From<std::io::Error> for UpNextError {
 impl From<toml_edit::TomlError> for UpNextError {
     fn from(e: toml_edit::TomlError) -> Self {
         UpNextError::SchemaError(e.to_string())
+    }
+}
+
+impl From<std::num::TryFromIntError> for UpNextError {
+    fn from(e: std::num::TryFromIntError) -> Self {
+        UpNextError::GenericError(format!("Could not convert integer: {e}"))
     }
 }
 
