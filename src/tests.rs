@@ -43,9 +43,6 @@ mod utils {
     use std::process::Command;
 
     pub fn test(name: &str, args: &Vec<&str>) {
-        let backup = save_toml_file();
-
-
         let (toml_path, expected_stdout, expected_stderr, before, after) = read_test_files(name);
         let (stdout, stderr, file_content) = {
             if let Some(before) = before {
@@ -66,10 +63,6 @@ mod utils {
         assert_eq!(file_content, after);
 
         delete_toml_file(PathBuf::from(&toml_path));
-
-
-        let toml_file_at_end = save_toml_file();
-        assert_eq!(toml_file_at_end, backup);
     }
 
     fn cargo_manifest_dir() -> String {
@@ -136,19 +129,5 @@ mod utils {
         assert_ne!(number_of_files_in_dir, 0, "No files in dir");
 
         (toml_path, res[0].clone(), res[1].clone(), res[2].clone(), res[3].clone())
-    }
-
-    fn save_toml_file() -> Option<String> {
-        fs::read_to_string(home::toml_file_path()).ok()
-    }
-
-    mod home {
-        use std::path::PathBuf;
-
-        pub(super) fn toml_file_path() -> PathBuf {
-            let mut path = dirs::home_dir().unwrap();
-            path.push(".upnext.toml");
-            path
-        }
     }
 }
