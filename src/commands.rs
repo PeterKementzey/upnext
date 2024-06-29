@@ -1,6 +1,6 @@
 use crate::commands::utils::{find_files, get_cwd, load_series_list, save_series_list};
 use crate::errors::{Result, UpNextError};
-use crate::schema::SeriesList;
+use crate::schema::{Series, SeriesList};
 
 pub static APP_NAME: &str = "upnext";
 
@@ -70,6 +70,20 @@ pub(super) fn edit_in_default_editor() -> Result<()> {
     let _output = std::process::Command::new("xdg-open")
         .arg(path)
         .output()?;
+    Ok(())
+}
+
+// TODO when testing also test ignore casing
+#[allow(clippy::needless_for_each)]
+pub(super) fn find_series(search_term: &str) -> Result<()> {
+    let series_list = load_series_list()?;
+    let lower_search_term = search_term.to_lowercase();
+    let found_series: Vec<&Series> = series_list.series.iter().filter(|s| s.path.to_lowercase().contains(&lower_search_term)).collect();
+    if found_series.is_empty() {
+        println!("No series found with the search term: {search_term}");
+    } else {
+        found_series.iter().for_each(|s| println!("{s}"));
+    }
     Ok(())
 }
 
