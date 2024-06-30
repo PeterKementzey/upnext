@@ -41,8 +41,21 @@ mod utils {
     use std::fs;
     use std::path::PathBuf;
     use std::process::Command;
+    use std::sync::Once;
+
+    static INIT: Once = Once::new();
+
+    fn build() {
+        INIT.call_once(|| {
+            Command::new("cargo")
+                .args(["build"])
+                .output()
+                .expect("Failed to execute command");
+        });
+    }
 
     pub fn test(name: &str, args: &Vec<&str>) {
+        build();
         let (toml_path, expected_stdout, expected_stderr, before, after) = read_test_files(name);
         let (stdout, stderr, file_content) = {
             if let Some(before) = before {
@@ -84,7 +97,7 @@ mod utils {
         path.push("target/debug/upnext");
         let output = Command::new(path)
             .args(args)
-            .env("UPNEXT_CONFIG_PATH", toml_path.clone())
+            .env(crate::utils::TOML_PATH_ENV_VAR_NAME, toml_path.clone())
             .output()
             .expect("Failed to execute command");
         let file_content = fs::read_to_string(toml_path).unwrap();
@@ -123,6 +136,7 @@ mod utils {
             toml_path.into_os_string().into_string().unwrap()
         };
 
+        delete_toml_file(PathBuf::from(&toml_path));
         let number_of_files_in_dir = fs::read_dir(&path).unwrap().count();
         let number_of_identified_test_files = res.iter().filter(|x| x.is_some()).count();
         assert_eq!(number_of_files_in_dir, number_of_identified_test_files, "Not all files in dir are identified as test files");
