@@ -1,7 +1,9 @@
 use crate::errors::UpNextError;
 
-pub fn get_toml_path() -> crate::errors::Result<String> {
-    match std::env::var("UPNEXT_CONFIG_PATH") {
+pub(crate) static TOML_PATH_ENV_VAR_NAME: &str = "UPNEXT_SERIES_DATA_PATH";
+
+pub(crate) fn get_toml_path() -> crate::errors::Result<String> {
+    match std::env::var(TOML_PATH_ENV_VAR_NAME) {
         Ok(path) => Ok(path),
         Err(_) => match std::env::var("HOME") {
             Ok(home) => Ok(format!("{home}/.upnext.toml")),

@@ -17,7 +17,9 @@ mod utils;
                   Data is saved in the file `~/.upnext.toml`. For each show, it saves the path and the \n\
                   episode number. If you change the path or delete, add, rename (reorder) episodes the \n\
                   tracking will be broken. You can fix it by editing the file. Use the app to play next \n\
-                  episodes automatically in VLC."
+                  episodes automatically in VLC.\n\
+                  You can override the location where the data is saved by setting the environment variable \n\
+                  `UPNEXT_SERIES_DATA_PATH` to the desired path."
 )]
 struct Cli {
     #[command(subcommand)]
