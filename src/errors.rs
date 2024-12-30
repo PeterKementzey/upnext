@@ -4,6 +4,7 @@ use std::fmt::Display;
 pub enum UpNextError {
     GenericError(String),
     IoError(std::io::Error),
+    VlcError(String),
     SchemaError(String),
     MissingSeries,
     SeriesAlreadyExists,
@@ -16,6 +17,7 @@ impl Display for UpNextError {
         match self {
             UpNextError::GenericError(e) => write!(f, "Error: {e}"),
             UpNextError::IoError(e) => write!(f, "IO error: {e}"),
+            UpNextError::VlcError(e) => write!(f, "VLC error: {e}"),
             UpNextError::SchemaError(e) => write!(f, "Schema error: {e}"),
             UpNextError::MissingSeries => write!(f, "No series found for current working directory. Please run `{} init` first.", crate::commands::APP_NAME),
             UpNextError::SeriesAlreadyExists => write!(f, "Current directory is already initialized."),

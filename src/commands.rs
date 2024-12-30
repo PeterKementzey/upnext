@@ -147,15 +147,38 @@ pub(super) fn play() -> Result<()> {
 mod player {
     use std::path::Path;
 
-    use crate::errors::Result;
+    use crate::errors::{Result, UpNextError};
+
+    const VLC_COMMAND: &str = {
+        #[cfg(target_os = "linux")]
+        {
+            "vlc"
+        }
+        #[cfg(target_os = "macos")]
+        {
+            "/Applications/VLC.app/Contents/MacOS/VLC"
+        }
+    };
 
     pub(super) fn play_in_vlc(file_path: &Path) -> Result<()> {
-        let _output = std::process::Command::new("vlc")
+        let output = std::process::Command::new(VLC_COMMAND)
             .arg(file_path)
             .arg("--play-and-exit")
             .arg("--fullscreen")
-            .output()?;
-        Ok(())
+            .output();
+        match output {
+            Ok(output) => {
+                if output.status.success() {
+                    Ok(())
+                } else {
+                    Err(UpNextError::VlcError(format!(
+                        "exited with status: {0}",
+                        output.status
+                    )))
+                }
+            }
+            Err(e) => Err(UpNextError::VlcError(e.to_string())),
+        }
     }
 
     pub(super) fn countdown(seconds: u64) {
