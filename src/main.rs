@@ -1,13 +1,16 @@
 use clap::{Parser, Subcommand};
 
-use crate::commands::{edit_in_default_editor, find_series, increment, init, play, play_next_episode, print_all_series_info, print_current_series_info, print_toml_path, remove, set_next_episode};
+use crate::commands::{
+    edit_in_default_editor, find_series, increment, init, play, play_next_episode,
+    print_all_series_info, print_current_series_info, print_toml_path, remove, set_next_episode,
+};
 
-mod data_management;
 mod commands;
+mod data_management;
+mod errors;
+mod schema;
 #[cfg(test)]
 mod tests;
-mod schema;
-mod errors;
 mod utils;
 
 /// A simple CLI app to keep track of your progress in watching TV shows, series.
@@ -19,7 +22,7 @@ mod utils;
                   tracking will be broken. You can fix it by editing the file. Use the app to play next \n\
                   episodes automatically in VLC.\n\
                   You can override the location where the data is saved by setting the environment variable \n\
-                  `UPNEXT_SERIES_DATA_PATH` to the desired path."
+                  `UPNEXT_TOML_PATH` to the desired path."
 )]
 struct Cli {
     #[command(subcommand)]
@@ -72,7 +75,6 @@ enum Commands {
     #[command(name = "which")]
     Which,
 }
-
 
 fn main() {
     let cli = Cli::parse();
