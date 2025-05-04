@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
 
 use crate::commands::{
     edit_in_default_editor, find_series, increment, init, play, play_next_episode,
@@ -74,6 +74,12 @@ enum Commands {
     /// Print the path to the toml file. (For debugging purposes.)
     #[command(name = "which")]
     Which,
+    /// Generate shell completions.
+    #[command(name = "completions")]
+    Completions {
+        /// The shell to generate completions for.
+        shell: clap_complete::Shell,
+    },
 }
 
 fn main() {
@@ -91,6 +97,9 @@ fn main() {
         Commands::Edit => edit_in_default_editor(),
         Commands::Find { search_term } => find_series(search_term),
         Commands::Which => print_toml_path(),
+        Commands::Completions { shell } => {
+            Ok(clap_complete::generate(*shell, &mut Cli::command(), "upnext", &mut std::io::stdout()))
+        }
     };
 
     if let Err(e) = res {
