@@ -4,7 +4,7 @@ use crate::schema::{Series, SeriesList};
 
 pub static APP_NAME: &str = "upnext";
 
-pub(super) fn print_series_info() -> Result<()> {
+pub(super) fn print_current_series_info() -> Result<()> {
     let series_list = load_series_list()?;
     let current_dir = get_cwd()?;
     let series = series_list.find_series(&current_dir)?;
@@ -101,7 +101,6 @@ pub(super) fn play_next_episode() -> Result<()> {
         Err(UpNextError::SeriesOver)
     } else {
         let file_path = &files[usize::try_from(series.next_episode)? - 1];
-        println!("Starting episode \"{}\" at {}.\n", file_path.file_name().unwrap().to_string_lossy(), chrono::Local::now().format("%H:%M"));
         player::play_in_vlc(file_path)?;
 
         series.next_episode += 1;
@@ -133,7 +132,6 @@ pub(super) fn play() -> Result<()> {
         let series = series_list.at_mut(i)?;
         player::countdown(8);
         let file_path = &files[usize::try_from(series.next_episode)? - 1];
-        println!("Starting episode \"{}\" at {}.\n", file_path.file_name().unwrap().to_string_lossy(), chrono::Local::now().format("%H:%M"));
         player::play_in_vlc(file_path)?;
         series.next_episode += 1;
         save_series_list(&series_list)?;
@@ -161,6 +159,7 @@ mod player {
     };
 
     pub(super) fn play_in_vlc(file_path: &Path) -> Result<()> {
+        println!("Starting episode \"{}\" at {}.\n", file_path.file_name().unwrap().to_string_lossy(), chrono::Local::now().format("%H:%M"));
         let output = std::process::Command::new(VLC_COMMAND)
             .arg(file_path)
             .arg("--play-and-exit")

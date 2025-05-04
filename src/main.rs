@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 
-use crate::commands::{edit_in_default_editor, find_series, increment, init, play, play_next_episode, print_all_series_info, print_series_info, print_toml_path, remove, set_next_episode};
+use crate::commands::{edit_in_default_editor, find_series, increment, init, play, play_next_episode, print_all_series_info, print_current_series_info, print_toml_path, remove, set_next_episode};
 
 mod data_management;
 mod commands;
@@ -81,7 +81,7 @@ fn main() {
         Commands::Init => init(),
         Commands::Play => play(),
         Commands::Next => play_next_episode(),
-        Commands::Info => print_series_info(),
+        Commands::Info => print_current_series_info(),
         Commands::IncrementEpisode { n } => increment(*n),
         Commands::SetNextEpisode { n } => set_next_episode(*n),
         Commands::Remove => remove(),
