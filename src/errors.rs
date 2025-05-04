@@ -9,6 +9,7 @@ pub enum UpNextError {
     MissingSeries,
     SeriesAlreadyExists,
     SeriesOver,
+    WrongEpisodeNumber,
     Unimplemented,
 }
 
@@ -22,6 +23,7 @@ impl Display for UpNextError {
             UpNextError::MissingSeries => write!(f, "No series found for current working directory. Please run `{} init` first.", crate::commands::APP_NAME),
             UpNextError::SeriesAlreadyExists => write!(f, "Current directory is already initialized."),
             UpNextError::SeriesOver => write!(f, "Season is over. No more episodes left in directory."),
+            UpNextError::WrongEpisodeNumber => write!(f, "\nCanceled due to episode numbering out of sync."),
             UpNextError::Unimplemented => write!(f, "Unimplemented"),
         }
     }

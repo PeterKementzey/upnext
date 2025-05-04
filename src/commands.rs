@@ -101,6 +101,7 @@ pub(super) fn play_next_episode() -> Result<()> {
         Err(UpNextError::SeriesOver)
     } else {
         let file_path = &files[usize::try_from(series.next_episode)? - 1];
+        utils::warn_on_episode_number_mismatch(file_path, series.next_episode)?;
         player::play_in_vlc(file_path)?;
 
         series.next_episode += 1;
@@ -122,6 +123,7 @@ pub(super) fn play() -> Result<()> {
     if series_list.at(i)?.next_episode <= i64::try_from(files.len())? {
         let series = series_list.at_mut(i)?;
         let file_path = &files[usize::try_from(series.next_episode)? - 1];
+        utils::warn_on_episode_number_mismatch(file_path, series.next_episode)?;
         player::play_in_vlc(file_path)?;
         series.next_episode += 1;
         save_series_list(&series_list)?;
@@ -190,6 +192,7 @@ mod player {
 }
 
 mod utils {
+    use std::io::BufRead;
     use std::path::PathBuf;
 
     use crate::data_management::persistence;
@@ -230,5 +233,26 @@ mod utils {
         }
         files.sort();
         Ok(files)
+    }
+
+    pub(super) fn warn_on_episode_number_mismatch(path: &PathBuf, episode_number: i64) -> Result<()> {
+        let file_name: &str = path.file_name().unwrap().to_str().unwrap();
+        if !file_name.contains(&episode_number.to_string()) {
+            println!("Warning: The file \"{}\" does not contain the episode number {}. If you deleted some episodes the `next_episode` which is an offset in the directory video files may need to be udpated. Play it anyway?", file_name, episode_number);
+            let response = std::io::stdin().lock().lines().next().unwrap()?;
+            match response.to_lowercase() {
+                answer if answer.contains("n") => {
+                    Err(UpNextError::WrongEpisodeNumber)
+                }
+                answer if answer.contains("y") || answer.is_empty() => {
+                    Ok(())
+                }
+                _ => {
+                    Err(UpNextError::WrongEpisodeNumber)
+                }
+            }
+        } else {
+            Ok(())
+        }
     }
 }
