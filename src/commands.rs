@@ -132,7 +132,8 @@ pub(super) fn play() -> Result<()> {
     }
     while series_list.at(i)?.next_episode <= i64::try_from(files.len())? {
         let series = series_list.at_mut(i)?;
-        player::countdown(8);
+        let episode_delay_seconds = 5;
+        player::countdown_to_next_episode(episode_delay_seconds);
         let file_path = &files[usize::try_from(series.next_episode)? - 1];
         player::play_in_vlc(file_path)?;
         series.next_episode += 1;
@@ -182,9 +183,9 @@ mod player {
         }
     }
 
-    pub(super) fn countdown(seconds: u64) {
-        println!("Playing next episode in {seconds} seconds...");
-        for i in (0..seconds).rev() {
+    pub(super) fn countdown_to_next_episode(episode_delay_seconds: u64) {
+        println!("Playing next episode in {episode_delay_seconds} seconds...");
+        for i in (0..episode_delay_seconds).rev() {
             std::thread::sleep(std::time::Duration::from_secs(1));
             println!("{i}");
         }
