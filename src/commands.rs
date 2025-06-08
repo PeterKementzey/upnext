@@ -112,7 +112,7 @@ pub(super) fn play_next_episode() -> Result<()> {
     }
 }
 
-pub(super) fn play() -> Result<()> {
+pub(super) fn play(episode_delay_seconds: u64) -> Result<()> {
     let mut series_list = load_series_list()?;
     let current_dir = get_cwd()?;
     let i = series_list.find_series_index(&current_dir)?;
@@ -132,7 +132,6 @@ pub(super) fn play() -> Result<()> {
     }
     while series_list.at(i)?.next_episode <= i64::try_from(files.len())? {
         let series = series_list.at_mut(i)?;
-        let episode_delay_seconds = 5;
         player::countdown_to_next_episode(episode_delay_seconds);
         let file_path = &files[usize::try_from(series.next_episode)? - 1];
         player::play_in_vlc(file_path)?;

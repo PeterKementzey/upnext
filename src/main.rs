@@ -36,7 +36,11 @@ enum Commands {
     Init,
     /// Start playing series (autoplay next episode).
     #[command(name = "play")]
-    Play,
+    Play {
+        /// Delay between episodes in seconds. If not specified, defaults to 5 seconds.
+        #[arg(long, short = 'd', default_value_t = 5)]
+        delay_seconds: u64,
+    },
     /// Play next episode.
     #[command(name = "next")]
     Next,
@@ -87,7 +91,7 @@ fn main() {
 
     let res = match &cli.command {
         Commands::Init => init(),
-        Commands::Play => play(),
+        Commands::Play { delay_seconds} => play(*delay_seconds),
         Commands::Next => play_next_episode(),
         Commands::Info => print_current_series_info(),
         Commands::IncrementEpisode { n } => increment(*n),
