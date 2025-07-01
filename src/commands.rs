@@ -146,23 +146,37 @@ pub(super) fn play(episode_delay_seconds: u64) -> Result<()> {
 
 mod player {
     use std::path::Path;
+    use std::process::Command;
 
     use crate::errors::{Result, UpNextError};
 
-    const VLC_COMMAND: &str = {
+    pub(super) fn play_in_vlc(file_path: &Path) -> Result<()> {
+        println!("Starting episode \"{}\" at {}.\n", file_path.file_name().unwrap().to_string_lossy(), chrono::Local::now().format("%H:%M"));
+
         #[cfg(target_os = "linux")]
         {
-            "vlc"
+            let mut flatpak_command = std::process::Command::new("flatpak");
+            let flatpak_vlc_command = flatpak_command.arg("run").arg("org.videolan.VLC");
+
+            let res = play_in_vlc_helper(flatpak_vlc_command, file_path);
+
+            match res {
+                Err(UpNextError::VlcCommandNotFoundError) => {
+                    eprintln!("VLC flatpak command not found. Trying to run VLC directly.\n");
+                    let mut vlc_command = std::process::Command::new("vlc");
+                    play_in_vlc_helper(&mut vlc_command, file_path)
+                }
+                other => other,
+            }
         }
         #[cfg(target_os = "macos")]
         {
-            "/Applications/VLC.app/Contents/MacOS/VLC"
+            play_in_vlc_helper("/Applications/VLC.app/Contents/MacOS/VLC", file_path)
         }
-    };
+    }
 
-    pub(super) fn play_in_vlc(file_path: &Path) -> Result<()> {
-        println!("Starting episode \"{}\" at {}.\n", file_path.file_name().unwrap().to_string_lossy(), chrono::Local::now().format("%H:%M"));
-        let output = std::process::Command::new(VLC_COMMAND)
+    fn play_in_vlc_helper(vlc_command: &mut Command, file_path: &Path) -> Result<()> {
+        let output = vlc_command
             .arg(file_path)
             .arg("--play-and-exit")
             .arg("--fullscreen")
@@ -177,6 +191,9 @@ mod player {
                         output.status
                     )))
                 }
+            }
+            Err(e) if e.to_string().contains("No such file or directory") => {
+                Err(UpNextError::VlcCommandNotFoundError)
             }
             Err(e) => Err(UpNextError::VlcError(e.to_string())),
         }
