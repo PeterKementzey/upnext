@@ -14,6 +14,7 @@ mod tests;
 mod utils;
 
 pub static APP_NAME: &str = "upnext";
+pub static TOML_PATH_ENV_VAR_NAME: &str = "UPNEXT_TOML_PATH"; // keep docs below in sync if changed
 
 /// A simple CLI app to keep track of your progress in watching TV shows, series.
 #[derive(Parser)]

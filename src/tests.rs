@@ -97,7 +97,7 @@ mod utils {
         path.push("target/debug/upnext");
         let output = Command::new(path)
             .args(args)
-            .env(crate::utils::TOML_PATH_ENV_VAR_NAME, toml_path.clone())
+            .env(crate::TOML_PATH_ENV_VAR_NAME, toml_path.clone())
             .output()
             .expect("Failed to execute command");
         let file_content = fs::read_to_string(toml_path).unwrap();
