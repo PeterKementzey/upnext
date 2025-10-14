@@ -22,7 +22,7 @@ impl Display for UpNextError {
             UpNextError::VlcError(e) => write!(f, "VLC error: {e}"),
             UpNextError::VlcCommandNotFoundError => write!(f, "VLC command not found. Please ensure VLC is installed and in your PATH."),
             UpNextError::SchemaError(e) => write!(f, "Schema error: {e}"),
-            UpNextError::MissingSeries => write!(f, "No series found for current working directory. Please run `{} init` first.", crate::commands::APP_NAME),
+            UpNextError::MissingSeries => write!(f, "No series found for current working directory. Please run `{} init` first.", crate::APP_NAME),
             UpNextError::SeriesAlreadyExists => write!(f, "Current directory is already initialized."),
             UpNextError::SeriesOver => write!(f, "Season is over. No more episodes left in directory."),
             UpNextError::WrongEpisodeNumber => write!(f, "\nCanceled due to episode numbering out of sync."),

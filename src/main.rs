@@ -13,6 +13,8 @@ mod schema;
 mod tests;
 mod utils;
 
+pub static APP_NAME: &str = "upnext";
+
 /// A simple CLI app to keep track of your progress in watching TV shows, series.
 #[derive(Parser)]
 #[command(
@@ -102,7 +104,7 @@ fn main() {
         Commands::Find { search_term } => find_series(search_term),
         Commands::Which => print_toml_path(),
         Commands::Completions { shell } => {
-            Ok(clap_complete::generate(*shell, &mut Cli::command(), "upnext", &mut std::io::stdout()))
+            Ok(clap_complete::generate(*shell, &mut Cli::command(), APP_NAME, &mut std::io::stdout()))
         }
     };
 

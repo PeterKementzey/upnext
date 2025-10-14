@@ -2,8 +2,6 @@ use crate::commands::utils::{find_files, get_cwd, load_series_list, save_series_
 use crate::errors::{Result, UpNextError};
 use crate::schema::{Series, SeriesList};
 
-pub static APP_NAME: &str = "upnext";
-
 pub(super) fn print_current_series_info() -> Result<()> {
     let series_list = load_series_list()?;
     let current_dir = get_cwd()?;
