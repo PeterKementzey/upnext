@@ -1,10 +1,10 @@
-use crate::commands::utils::{find_files, get_cwd, load_series_list, save_series_list};
+use crate::commands::utils::{find_files, get_cwd, get_cwd_name, load_series_list, save_series_list};
 use crate::errors::{Result, UpNextError};
 use crate::schema::{Series, SeriesList};
 
 pub(super) fn print_current_series_info() -> Result<()> {
     let series_list = load_series_list()?;
-    let current_dir = get_cwd()?;
+    let current_dir = get_cwd_name()?;
     let series = series_list.find_series(&current_dir)?;
     Ok(println!("{series}"))
 }
@@ -15,10 +15,10 @@ pub(super) fn print_all_series_info() -> Result<()> {
 }
 
 pub(super) fn init() -> Result<()> {
+    // TODO only catch file not found errors
     let mut series_list: SeriesList = load_series_list().unwrap_or_else(|_| SeriesList::new());
-    let current_dir = get_cwd()?;
 
-    series_list.add_series(current_dir.clone())?;
+    series_list.add_series(&get_cwd_name()?)?;
     let series = series_list.series.last().ok_or_else(|| UpNextError::GenericError("Could not get last series".to_string()))?;
     save_series_list(&series_list)?;
     Ok(println!("{series}"))
@@ -26,7 +26,7 @@ pub(super) fn init() -> Result<()> {
 
 pub(super) fn increment(n: i64) -> Result<()> {
     let mut series_list = load_series_list()?;
-    let current_dir = get_cwd()?;
+    let current_dir = get_cwd_name()?;
     let series = series_list.find_series_mut(&current_dir)?;
     println!("{series}");
     series.next_episode += n;
@@ -38,7 +38,7 @@ pub(super) fn increment(n: i64) -> Result<()> {
 
 pub(super) fn set_next_episode(n: u32) -> Result<()> {
     let mut series_list = load_series_list()?;
-    let current_dir = get_cwd()?;
+    let current_dir = get_cwd_name()?;
     let series = series_list.find_series_mut(&current_dir)?;
     println!("{series}");
 
@@ -51,11 +51,11 @@ pub(super) fn set_next_episode(n: u32) -> Result<()> {
 
 pub(super) fn remove() -> Result<()> {
     let mut series_list = load_series_list()?;
-    let current_dir = get_cwd()?;
+    let current_dir = get_cwd_name()?;
     let series = series_list.find_series(&current_dir)?;
     println!("{series}");
 
-    series_list.remove_series(&get_cwd()?);
+    series_list.remove_series(&current_dir);
     save_series_list(&series_list)?;
 
     Ok(println!("Series removed."))
@@ -90,11 +90,11 @@ pub(super) fn print_toml_path() -> Result<()> {
 
 pub(super) fn play_next_episode() -> Result<()> {
     let mut series_list = load_series_list()?;
-    let current_dir = get_cwd()?;
+    let current_dir = get_cwd_name()?;
     let series = series_list.find_series_mut(&current_dir)?;
     println!("{series}");
 
-    let files = find_files(&series.path)?;
+    let files = find_files(get_cwd()?)?;
     if series.next_episode > i64::try_from(files.len())? {
         Err(UpNextError::SeriesOver)
     } else {
@@ -112,10 +112,10 @@ pub(super) fn play_next_episode() -> Result<()> {
 
 pub(super) fn play(episode_delay_seconds: u64) -> Result<()> {
     let mut series_list = load_series_list()?;
-    let current_dir = get_cwd()?;
+    let current_dir = get_cwd_name()?;
     let i = series_list.find_series_index(&current_dir)?;
     let series = series_list.at_mut(i)?;
-    let files = find_files(&series.path)?;
+    let files = find_files(get_cwd()?)?;
 
     println!("{series}");
     if series_list.at(i)?.next_episode <= i64::try_from(files.len())? {
@@ -208,7 +208,7 @@ mod player {
 
 mod utils {
     use std::io::BufRead;
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
 
     use crate::data_management::persistence;
     use crate::errors::{Result, UpNextError};
@@ -223,11 +223,22 @@ mod utils {
         persistence::read_toml_file(utils::get_toml_path()?)
     }
 
-    pub(super) fn get_cwd() -> Result<String> {
-        std::env::current_dir()?.to_str().ok_or_else(|| UpNextError::GenericError("Could not convert cwd to string".to_string())).map(ToString::to_string)
+    pub(super) fn get_cwd() -> Result<PathBuf> {
+        Ok(std::env::current_dir()?)
     }
 
-    pub(super) fn find_files(path: &str) -> Result<Vec<PathBuf>> {
+    pub(super) fn get_cwd_name() -> Result<String> {
+        Ok(
+            get_cwd()?
+            .file_name()
+            .ok_or(UpNextError::GenericError("Could not get top level of current directory".to_string()))?
+            .to_str()
+            .ok_or(UpNextError::GenericError("Current directory could not be parsed as UTF-8".to_string()))?
+            .to_string()
+        )
+    }
+
+    pub(super) fn find_files(path: &Path) -> Result<Vec<PathBuf>> {
         let extensions = ["mkv", "mp4", "avi", "flv", "mov", "wmv", "webm", "mpg", "mpeg", "m4v"];
         let mut files = vec![];
         // read all files in the directory
