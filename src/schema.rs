@@ -18,11 +18,11 @@ impl SeriesList {
         SeriesList { series: Vec::new() }
     }
 
-    pub fn add_series(&mut self, path: String) -> Result<()> {
+    pub fn add_series(&mut self, path: &str) -> Result<()> {
         if self.series.iter().any(|s| s.path == path) {
             Err(UpNextError::SeriesAlreadyExists)?;
         }
-        self.series.push(Series { path, next_episode: 1 });
+        self.series.push(Series { path: path.to_string(), next_episode: 1 });
         Ok(())
     }
 
@@ -48,5 +48,9 @@ impl SeriesList {
 
     pub fn find_series(&self, path: &str) -> Result<&Series> {
         self.series.iter().find(|s| s.path == path).ok_or_else(|| UpNextError::MissingSeries)
+    }
+
+    pub fn contains_path(&self, path: &str) -> bool {
+        self.series.iter().any(|s| s.path == path)
     }
 }

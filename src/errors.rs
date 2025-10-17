@@ -11,7 +11,7 @@ pub enum UpNextError {
     SeriesAlreadyExists,
     SeriesOver,
     WrongEpisodeNumber,
-    Unimplemented,
+    // Unimplemented,
 }
 
 impl Display for UpNextError {
@@ -26,7 +26,7 @@ impl Display for UpNextError {
             UpNextError::SeriesAlreadyExists => write!(f, "Current directory is already initialized."),
             UpNextError::SeriesOver => write!(f, "Season is over. No more episodes left in directory."),
             UpNextError::WrongEpisodeNumber => write!(f, "\nCanceled due to episode numbering out of sync."),
-            UpNextError::Unimplemented => write!(f, "Unimplemented"),
+            // UpNextError::Unimplemented => write!(f, "Unimplemented"),
         }
     }
 }
