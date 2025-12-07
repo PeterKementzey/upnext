@@ -211,7 +211,7 @@ mod utils {
     use std::io::BufRead;
     use std::path::PathBuf;
 
-    use crate::data_management::persistence;
+    use crate::persistence;
     use crate::errors::{Result, UpNextError};
     use crate::schema::SeriesList;
     use crate::utils;

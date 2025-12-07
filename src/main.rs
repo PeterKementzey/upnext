@@ -6,7 +6,7 @@ use crate::commands::{
 };
 
 mod commands;
-mod data_management;
+mod persistence;
 mod errors;
 mod schema;
 #[cfg(test)]

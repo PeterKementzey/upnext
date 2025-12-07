@@ -49,4 +49,8 @@ impl SeriesList {
     pub fn find_series(&self, path: &str) -> Result<&Series> {
         self.series.iter().find(|s| s.path == path).ok_or_else(|| UpNextError::MissingSeries)
     }
+
+    pub fn contains_path(&self, path: &str) -> bool {
+        self.series.iter().any(|s| s.path == path)
+    }
 }
