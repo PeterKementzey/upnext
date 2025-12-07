@@ -6,8 +6,8 @@ use crate::commands::{
 };
 
 mod commands;
-mod persistence;
 mod errors;
+mod persistence;
 mod schema;
 #[cfg(test)]
 mod tests;
@@ -94,7 +94,7 @@ fn main() {
 
     let res = match &cli.command {
         Commands::Init => init(),
-        Commands::Play { delay_seconds} => play(*delay_seconds),
+        Commands::Play { delay_seconds } => play(*delay_seconds),
         Commands::Next => play_next_episode(),
         Commands::Info => print_current_series_info(),
         Commands::IncrementEpisode { n } => increment(*n),
@@ -104,9 +104,12 @@ fn main() {
         Commands::Edit => edit_in_default_editor(),
         Commands::Find { search_term } => find_series(search_term),
         Commands::Which => print_toml_path(),
-        Commands::Completions { shell } => {
-            Ok(clap_complete::generate(*shell, &mut Cli::command(), APP_NAME, &mut std::io::stdout()))
-        }
+        Commands::Completions { shell } => Ok(clap_complete::generate(
+            *shell,
+            &mut Cli::command(),
+            APP_NAME,
+            &mut std::io::stdout(),
+        )),
     };
 
     if let Err(e) = res {

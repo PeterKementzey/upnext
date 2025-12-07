@@ -22,7 +22,10 @@ impl SeriesList {
         if self.series.iter().any(|s| s.path == path) {
             Err(UpNextError::SeriesAlreadyExists)?;
         }
-        self.series.push(Series { path, next_episode: 1 });
+        self.series.push(Series {
+            path,
+            next_episode: 1,
+        });
         Ok(())
     }
 
@@ -31,23 +34,36 @@ impl SeriesList {
     }
 
     pub fn find_series_index(&self, path: &str) -> Result<usize> {
-        self.series.iter().position(|s| s.path == path).ok_or_else(|| UpNextError::MissingSeries)
+        self.series
+            .iter()
+            .position(|s| s.path == path)
+            .ok_or_else(|| UpNextError::MissingSeries)
     }
 
     pub fn at(&self, index: usize) -> Result<&Series> {
-        self.series.get(index).ok_or_else(|| UpNextError::MissingSeries)
+        self.series
+            .get(index)
+            .ok_or_else(|| UpNextError::MissingSeries)
     }
 
     pub fn at_mut(&mut self, index: usize) -> Result<&mut Series> {
-        self.series.get_mut(index).ok_or_else(|| UpNextError::MissingSeries)
+        self.series
+            .get_mut(index)
+            .ok_or_else(|| UpNextError::MissingSeries)
     }
 
     pub fn find_series_mut(&mut self, path: &str) -> Result<&mut Series> {
-        self.series.iter_mut().find(|s| s.path == path).ok_or_else(|| UpNextError::MissingSeries)
+        self.series
+            .iter_mut()
+            .find(|s| s.path == path)
+            .ok_or_else(|| UpNextError::MissingSeries)
     }
 
     pub fn find_series(&self, path: &str) -> Result<&Series> {
-        self.series.iter().find(|s| s.path == path).ok_or_else(|| UpNextError::MissingSeries)
+        self.series
+            .iter()
+            .find(|s| s.path == path)
+            .ok_or_else(|| UpNextError::MissingSeries)
     }
 
     pub fn contains_path(&self, path: &str) -> bool {

@@ -35,7 +35,6 @@ fn test_set_next_episode() {
     test("test_set_next_episode", &vec!["set", "42"]);
 }
 
-
 #[cfg(test)]
 mod utils {
     use std::fs;
@@ -106,7 +105,15 @@ mod utils {
     }
 
     /// returns `expected_stdout`, `expected_stderr`, .upnext.toml at start, .upnext.toml at end
-    fn read_test_files(test_name: &str) -> (String, Option<String>, Option<String>, Option<String>, Option<String>) {
+    fn read_test_files(
+        test_name: &str,
+    ) -> (
+        String,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+    ) {
         fn inject_path(content: &str) -> String {
             content.replace("PATH", &cargo_manifest_dir())
         }
@@ -118,17 +125,19 @@ mod utils {
             path
         };
 
-        let res: Vec<Option<String>> = (0..4).map(|i| {
-            let mut path = path.clone();
-            path.push(match i {
-                0 => "stdout.txt",
-                1 => "stderr.txt",
-                2 => "before.toml",
-                3 => "after.toml",
-                _ => unreachable!(),
-            });
-            fs::read_to_string(&path).ok().map(|s| inject_path(&s))
-        }).collect();
+        let res: Vec<Option<String>> = (0..4)
+            .map(|i| {
+                let mut path = path.clone();
+                path.push(match i {
+                    0 => "stdout.txt",
+                    1 => "stderr.txt",
+                    2 => "before.toml",
+                    3 => "after.toml",
+                    _ => unreachable!(),
+                });
+                fs::read_to_string(&path).ok().map(|s| inject_path(&s))
+            })
+            .collect();
 
         let toml_path: String = {
             let mut toml_path = path.clone();
@@ -139,9 +148,18 @@ mod utils {
         delete_toml_file(PathBuf::from(&toml_path));
         let number_of_files_in_dir = fs::read_dir(&path).unwrap().count();
         let number_of_identified_test_files = res.iter().filter(|x| x.is_some()).count();
-        assert_eq!(number_of_files_in_dir, number_of_identified_test_files, "Not all files in dir are identified as test files");
+        assert_eq!(
+            number_of_files_in_dir, number_of_identified_test_files,
+            "Not all files in dir are identified as test files"
+        );
         assert_ne!(number_of_files_in_dir, 0, "No files in dir");
 
-        (toml_path, res[0].clone(), res[1].clone(), res[2].clone(), res[3].clone())
+        (
+            toml_path,
+            res[0].clone(),
+            res[1].clone(),
+            res[2].clone(),
+            res[3].clone(),
+        )
     }
 }
