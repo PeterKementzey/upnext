@@ -169,7 +169,8 @@ mod player {
         }
         #[cfg(target_os = "macos")]
         {
-            play_in_vlc_helper("/Applications/VLC.app/Contents/MacOS/VLC", file_path)
+            let mut vlc_command = std::process::Command::new("/Applications/VLC.app/Contents/MacOS/VLC");
+            play_in_vlc_helper(&mut vlc_command, file_path)
         }
     }
 
@@ -185,7 +186,7 @@ mod player {
                     Ok(())
                 } else {
                     Err(UpNextError::VlcError(format!(
-                        "exited with status: {0}",
+                        "exited with status: {}",
                         output.status
                     )))
                 }
