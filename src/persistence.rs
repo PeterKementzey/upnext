@@ -172,13 +172,10 @@ fn update_or_create_next_episode(
         // Update value
         *next_episode_item = value(next_episode);
         // Reapply decoration
-        if let Some(new_value) = next_episode_item.as_value_mut() {
-            Ok(*new_value.decor_mut() = decor)
-        } else {
-            Err(UpNextError::SchemaError(
-                "next_episode_item is not value".to_string(),
-            ))
-        }
+        let new_value = next_episode_item
+            .as_value_mut()
+            .expect("just created it as a value");
+        Ok(*new_value.decor_mut() = decor)
     } else {
         Ok(series_table["next_episode"] = value(next_episode))
     }
